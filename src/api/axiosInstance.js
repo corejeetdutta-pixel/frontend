@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL:'https://api.1c.atract.in', //https://backend-n4w7.onrender.com
+  baseURL:'https://api.atract.in', //https://backend-n4w7.onrender.com
   withCredentials: true,
 });
 
