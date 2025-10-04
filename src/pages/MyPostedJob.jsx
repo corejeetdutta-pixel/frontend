@@ -134,7 +134,7 @@ const MyPostedJobs = () => {
   };
 
   const handleShare = (jobId) => {
-    const url = `${window.location.origin}/jobs/${jobId}`;
+    const url = `${import.meta.env.VITE_FRONTEND_URL}/jobs/${jobId}`;
     navigator.clipboard.writeText(url);
     alert('📋 Job link copied to clipboard!');
   };
