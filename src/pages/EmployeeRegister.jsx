@@ -9,14 +9,21 @@ const EmployeeRegister = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    empId: "",
+    mobile: "",
+    address: "",
+    gender: "",
+    dateOfBirth: "",
+    aadharNumber: "",
+    panNumber: "",
     password: "",
+    registrationKey: "" // NEW: Added registration key field
   });
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [expandedPdf, setExpandedPdf] = useState(null);
   const [registered, setRegistered] = useState(false);
   const [error, setError] = useState("");
+  const [generatedEmpId, setGeneratedEmpId] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -28,14 +35,14 @@ const EmployeeRegister = () => {
     setError("");
 
     try {
-      await EmployeeAuthServices.registerEmployee({
+      const response = await EmployeeAuthServices.registerEmployee({
         ...formData,
         agreedToTerms: agreed,
       });
 
+      setGeneratedEmpId(response.data.empId);
       setRegistered(true);
-      // Removed NotificationContext usage
-      console.log(`New employee registered: ${formData.name} (${formData.empId})`);
+      console.log(`New employee registered: ${formData.name} (${response.data.empId})`);
     } catch (err) {
       setError(err.response?.data || "Registration failed. Please try again.");
     }
@@ -63,8 +70,14 @@ const EmployeeRegister = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Verification Email Sent!
+              Registration Successful!
             </h2>
+            <p className="text-gray-600 mb-2">
+              Your Employee ID: <span className="font-bold text-[#0260a4]">{generatedEmpId}</span>
+            </p>
+            <p className="text-gray-600 text-sm mb-4">
+              Please save this Employee ID for login.
+            </p>
             <p className="text-gray-600">
               We've sent a verification link to{" "}
               <span className="font-semibold">{formData.email}</span>.
@@ -91,7 +104,7 @@ const EmployeeRegister = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#e6ecf5]">
-      <div className="rounded-3xl shadow-lg bg-white w-full max-w-md p-10">
+      <div className="rounded-3xl shadow-lg bg-white w-full max-w-2xl p-8 overflow-y-auto max-h-screen">
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
@@ -122,82 +135,193 @@ const EmployeeRegister = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Enter your name"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="you@company.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Employee ID */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Employee ID
-            </label>
-            <input
-              type="text"
-              name="empId"
-              value={formData.empId}
-              onChange={handleChange}
-              required
-              placeholder="Enter your employee ID"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <div className="relative">
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Registration Key - NEW FIELD */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Registration Key *
+                <span className="text-xs text-gray-500 ml-1">(Provided by your organization)</span>
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                type="text"
+                name="registrationKey"
+                value={formData.registrationKey}
                 onChange={handleChange}
                 required
-                placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 outline-none"
+                placeholder="Enter your registration key"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4] bg-yellow-50"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+              <p className="text-xs text-gray-500 mt-1">
+                You need a valid registration key provided by your organization to create an account.
+              </p>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Enter your full name"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="you@company.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+              />
+            </div>
+
+            {/* Mobile */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mobile Number *
+              </label>
+              <input
+                type="tel"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                required
+                placeholder="10-digit mobile number"
+                pattern="[0-9]{10}"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+              />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gender *
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
               >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
+                <option value="">Select Gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date of Birth *
+              </label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                required
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+              />
+            </div>
+
+            {/* Aadhar Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Aadhar Number *
+              </label>
+              <input
+                type="text"
+                name="aadharNumber"
+                value={formData.aadharNumber}
+                onChange={handleChange}
+                required
+                placeholder="12-digit Aadhar number"
+                pattern="[0-9]{12}"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+              />
+            </div>
+
+            {/* PAN Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PAN Number *
+              </label>
+              <input
+                type="text"
+                name="panNumber"
+                value={formData.panNumber}
+                onChange={handleChange}
+                required
+                placeholder="e.g., ABCDE1234F"
+                pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4] uppercase"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Password must contain at least 8 characters with uppercase, lowercase, number, and special character
+              </p>
+            </div>
+
+            {/* Address */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address *
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                placeholder="Enter your complete address"
+                rows="3"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0260a4] resize-none"
+              />
             </div>
           </div>
 
           {/* Agreement */}
-          <div className="flex items-start space-x-2">
+          <div className="flex items-start space-x-2 pt-2">
             <input
               type="checkbox"
               id="agree"

@@ -14,6 +14,7 @@ const Login = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +27,12 @@ const Login = ({ setUser }) => {
 
     if (!formData.email || !formData.password) {
       toast.error('Please fill in both email and password');
+      setLoading(false);
+      return;
+    }
+
+    if (!agreedToDisclaimer) {
+      toast.error('Please agree to the AI Evaluation Consent Agreement');
       setLoading(false);
       return;
     }
@@ -64,7 +71,7 @@ const Login = ({ setUser }) => {
     <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
       <div className="bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-md">
         <div className="bg-[#0260a4] py-6 px-6 text-center">
-          <h2 className="text-3xl font-extrabold mb-1">Welcome Back!</h2>
+          <h2 className="text-3xl font-extrabold text-white mb-1">Welcome Back!</h2>
           <p className="text-sm text-blue-100">
             Let's get you started on your recruitment journey
           </p>
@@ -111,12 +118,47 @@ const Login = ({ setUser }) => {
               </div>
             </div>
 
+            {/* Disclaimer Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-60 overflow-y-auto">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">
+                AI Evaluation Consent Agreement
+              </h3>
+              <div className="text-xs text-gray-600 space-y-2">
+                <p className="font-medium">Disclaimer</p>
+                <p>This application process includes AI-generated evaluations. While our systems are designed for accuracy and fairness, automated assessments may occasionally produce unintended outputs.</p>
+                <p>By proceeding, you acknowledge and consent to AI-assisted screening as part of the evaluation process.</p>
+                
+                <p className="font-medium mt-3">By proceeding with this application, I acknowledge and agree that:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>The evaluation and screening process may involve AI-generated questions and assessments.</li>
+                  <li>The AI system is designed to maintain fairness and accuracy; however, automated outputs may occasionally vary or contain unintended responses.</li>
+                  <li>Final hiring decisions are made by human reviewers, and AI evaluations are only a supporting tool in the process.</li>
+                  <li>I consent to the use of AI-assisted analysis for my application and responses, in accordance with the organization's Privacy Policy.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Agreement Checkbox */}
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id="disclaimer-agreement"
+                checked={agreedToDisclaimer}
+                onChange={(e) => setAgreedToDisclaimer(e.target.checked)}
+                className="mt-1 text-blue-600 focus:ring-blue-500"
+                required
+              />
+              <label htmlFor="disclaimer-agreement" className="text-sm text-gray-700">
+                I have read and agree to the AI Evaluation Consent Agreement
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreedToDisclaimer}
               className={`w-full py-2.5 rounded-lg transition font-medium shadow ${
-                loading
-                  ? 'bg-blue-300 cursor-not-allowed'
+                loading || !agreedToDisclaimer
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                   : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
             >
