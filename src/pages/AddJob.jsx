@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import JobServices from "../api/JobServices";
 import EmployeeAuthServices from "../api/EmployeeAuthServices";
 import { useLocation } from "react-router-dom";
-
+//this is a comment to test git changes
 const predefinedLocations = [
   "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Pune",
   "Chennai", "Kolkata", "Noida", "Gurgaon", "Ahmedabad", "Other"
