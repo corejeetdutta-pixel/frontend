@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL:'https://api.atract.in', //https://backend-n4w7.onrender.com
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080',
   withCredentials: true,
 });
 

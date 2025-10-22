@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import AuthServices from '../api/AuthServices';
+import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -12,13 +12,16 @@ const VerifyEmail = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [token, setToken] = useState('');
 
+  // ✅ Use your backend URL from .env or fallback
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
     console.log("🔍 VerifyEmail Component Mounted");
     console.log("📧 Token from URL:", tokenFromUrl);
-    
+
     setToken(tokenFromUrl || '');
-    
+
     if (!tokenFromUrl) {
       console.error("❌ No token found in URL");
       setMessage('Invalid verification link. No token provided.');
@@ -33,36 +36,52 @@ const VerifyEmail = () => {
   const verifyEmail = async (token) => {
     try {
       setIsLoading(true);
+      setIsSuccess(false);
       console.log("🔄 Starting verification for token:", token);
-      
-      const response = await AuthServices.verifyEmail(token);
-      console.log("✅ Verification response:", response);
-      
-      setMessage(response.data);
-      setIsSuccess(true);
-      toast.success('Email verified successfully!');
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        console.log("🔄 Redirecting to login page");
-        navigate('/login');
-      }, 3000);
+
+      let response;
+
+      // 🧩 1️⃣ Try verifying as an EMPLOYEE first
+      try {
+        console.log("Attempting employee verification...");
+        response = await axios.get(`${BACKEND_URL}/auth/employee/verify?token=${token}`);
+        console.log("✅ Employee verification success:", response.data);
+        setMessage(response.data.message || 'Employer email verified successfully!');
+        setIsSuccess(true);
+        toast.success('Employer email verified successfully!');
+      } catch (employeeError) {
+        console.warn("⚠️ Employee verification failed, trying job seeker...");
+
+        // 🧩 2️⃣ Try verifying as a JOB SEEKER (user)
+        try {
+          response = await axios.get(`${BACKEND_URL}/auth/user/verify-email?token=${token}`);
+          console.log("✅ User verification success:", response.data);
+          setMessage(response.data.message || 'Job seeker email verified successfully!');
+          setIsSuccess(true);
+          toast.success('Job seeker email verified successfully!');
+        } catch (userError) {
+          console.error("❌ Both verifications failed:", userError);
+          const errorMsg =
+            userError.response?.data?.message ||
+            userError.response?.data ||
+            'Invalid or expired verification token.';
+          setMessage(errorMsg);
+          setIsSuccess(false);
+          toast.error(errorMsg);
+        }
+      }
+
+      if (response && response.status === 200) {
+        setTimeout(() => {
+          console.log("🔄 Redirecting to login page...");
+          navigate('/login');
+        }, 3000);
+      }
     } catch (error) {
       console.error('❌ Verification error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error message:', error.message);
-      
-      let errorMsg = 'Verification failed. Please try again.';
-      
-      if (error.response) {
-        errorMsg = error.response.data || errorMsg;
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-      
-      setMessage(errorMsg);
+      setMessage('Verification failed. Please try again later.');
       setIsSuccess(false);
-      toast.error(errorMsg);
+      toast.error('Verification failed.');
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +100,7 @@ const VerifyEmail = () => {
         <div className="bg-gradient-to-r from-green-600 to-blue-700 text-white py-4 px-6 rounded-t-3xl -mx-8 -mt-8 mb-6">
           <h2 className="text-2xl font-bold">Email Verification</h2>
         </div>
-        
+
         {isLoading ? (
           <div className="flex flex-col items-center py-6">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
@@ -90,9 +109,11 @@ const VerifyEmail = () => {
           </div>
         ) : (
           <div className="py-4">
-            <div className={`rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4 ${
-              isSuccess ? 'bg-green-100' : 'bg-red-100'
-            }`}>
+            <div
+              className={`rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4 ${
+                isSuccess ? 'bg-green-100' : 'bg-red-100'
+              }`}
+            >
               {isSuccess ? (
                 <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
@@ -103,13 +124,13 @@ const VerifyEmail = () => {
                 </svg>
               )}
             </div>
-            
+
             <h3 className={`text-xl font-semibold mb-3 ${isSuccess ? 'text-green-700' : 'text-red-700'}`}>
               {isSuccess ? 'Verification Successful!' : 'Verification Failed'}
             </h3>
-            
+
             <p className="text-gray-700 mb-4 leading-relaxed">{message}</p>
-            
+
             {!isSuccess && token && (
               <div className="mt-4 mb-6">
                 <button
@@ -120,7 +141,7 @@ const VerifyEmail = () => {
                 </button>
               </div>
             )}
-            
+
             {!isSuccess && (
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600 mb-3">
@@ -134,12 +155,10 @@ const VerifyEmail = () => {
                 </Link>
               </div>
             )}
-            
+
             {isSuccess && (
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-3">
-                  Redirecting to login page...
-                </p>
+                <p className="text-sm text-gray-600 mb-3">Redirecting to login page...</p>
                 <Link
                   to="/login"
                   className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition"
