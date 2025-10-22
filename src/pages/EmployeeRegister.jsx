@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import EmployeeAuthServices from "../api/EmployeeAuthServices";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import TCText from "../assets/TC.txt?raw";
 import ProcessTermsText from "../assets/Process_Terms_Graded_New.txt?raw";
 
@@ -9,38 +11,206 @@ const EmployeeRegister = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    empId: "",
+    mobile: "",
+    address: "",
+    gender: "",
+    dateOfBirth: "",
+    aadharNumber: "",
+    panNumber: "",
     password: "",
+    confirmPassword: "",
+    registrationKey: ""
   });
+
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [expandedPdf, setExpandedPdf] = useState(null);
   const [registered, setRegistered] = useState(false);
-  const [error, setError] = useState("");
+  const [generatedEmpId, setGeneratedEmpId] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const patterns = {
+    name: /^[a-zA-Z\s.'-]{2,50}$/,
+    email: /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+    mobile: /^[6-9]\d{9}$/,
+    aadhar: /^\d{12}$/,
+    pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+    password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  };
+
+  // Improved field validation
+  const validateField = (name, value, formValues) => {
+    const newErrors = { ...errors };
+
+    switch (name) {
+      case 'name':
+        if (!value.trim()) newErrors.name = 'Name is required';
+        else if (!patterns.name.test(value)) newErrors.name = 'Name must be 2-50 chars with letters, spaces, apostrophes, hyphens, dots';
+        else delete newErrors.name;
+        break;
+
+      case 'email':
+        if (!value.trim()) newErrors.email = 'Email is required';
+        else if (!patterns.email.test(value)) newErrors.email = 'Invalid email';
+        else delete newErrors.email;
+        break;
+
+      case 'mobile':
+        if (!value.trim()) newErrors.mobile = 'Mobile is required';
+        else if (!patterns.mobile.test(value)) newErrors.mobile = 'Invalid 10-digit mobile';
+        else delete newErrors.mobile;
+        break;
+
+      case 'aadharNumber':
+        if (!value.trim()) newErrors.aadharNumber = 'Aadhar is required';
+        else if (!patterns.aadhar.test(value)) newErrors.aadharNumber = 'Aadhar must be 12 digits';
+        else delete newErrors.aadharNumber;
+        break;
+
+      case 'panNumber':
+        if (!value.trim()) newErrors.panNumber = 'PAN is required';
+        else if (!patterns.pan.test(value.toUpperCase())) newErrors.panNumber = 'PAN format invalid';
+        else delete newErrors.panNumber;
+        break;
+
+      case 'password':
+        if (!value) newErrors.password = 'Password is required';
+        else if (!patterns.password.test(value)) newErrors.password = 'Password must be 8+ chars with uppercase, lowercase, number, special char';
+        else delete newErrors.password;
+
+        if (formValues.confirmPassword) {
+          if (formValues.confirmPassword !== value) newErrors.confirmPassword = 'Passwords do not match';
+          else if (!patterns.password.test(formValues.confirmPassword)) newErrors.confirmPassword = 'Confirm password must match pattern';
+          else delete newErrors.confirmPassword;
+        }
+        break;
+
+      case 'confirmPassword':
+        if (!value) newErrors.confirmPassword = 'Please confirm password';
+        else if (!patterns.password.test(value)) newErrors.confirmPassword = 'Confirm password must match pattern';
+        else if (value !== formValues.password) newErrors.confirmPassword = 'Passwords do not match';
+        else delete newErrors.confirmPassword;
+        break;
+
+      case 'dateOfBirth':
+        if (!value) newErrors.dateOfBirth = 'Date of birth required';
+        else {
+          const dob = new Date(value);
+          const today = new Date();
+          const age = today.getFullYear() - dob.getFullYear();
+          if (age < 18) newErrors.dateOfBirth = 'Must be at least 18';
+          else if (age > 100) newErrors.dateOfBirth = 'Invalid DOB';
+          else delete newErrors.dateOfBirth;
+        }
+        break;
+
+      case 'address':
+        if (!value.trim()) newErrors.address = 'Address required';
+        else if (value.trim().length < 10) newErrors.address = 'Address must be 10+ chars';
+        else if (value.trim().length > 500) newErrors.address = 'Address too long';
+        else delete newErrors.address;
+        break;
+
+      case 'gender':
+        if (!value) newErrors.gender = 'Gender required';
+        else delete newErrors.gender;
+        break;
+
+      case 'registrationKey':
+        if (!value.trim()) newErrors.registrationKey = 'Registration key required';
+        else delete newErrors.registrationKey;
+        break;
+
+      default:
+        break;
+    }
+
+    return newErrors;
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let processedValue = value;
+
+    // auto-format
+    if (name === 'panNumber') processedValue = value.toUpperCase();
+    if (name === 'email') processedValue = value.toLowerCase();
+    if (name === 'aadharNumber') processedValue = value.replace(/\D/g, '').slice(0, 12);
+    if (name === 'mobile') processedValue = value.replace(/\D/g, '').slice(0, 10);
+
+    const updatedForm = { ...formData, [name]: processedValue };
+
+    const updatedErrors = validateField(name, processedValue, updatedForm);
+    setFormData(updatedForm);
+    setErrors(updatedErrors);
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      'name', 'email', 'mobile', 'address', 'gender',
+      'dateOfBirth', 'aadharNumber', 'panNumber', 'password',
+      'confirmPassword', 'registrationKey'
+    ];
+
+    let currentErrors = { ...errors };
+    requiredFields.forEach(field => {
+      currentErrors = validateField(field, formData[field], formData);
+    });
+    setErrors(currentErrors);
+
+    if (!agreed) {
+      toast.error('Please agree to Terms & Conditions and Process Terms');
+      return false;
+    }
+
+    return Object.keys(currentErrors).length === 0;
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setError("");
+    setLoading(true);
+
+    if (!validateForm()) {
+      setLoading(false);
+      toast.error('Fix validation errors before submitting');
+      return;
+    }
 
     try {
-      await EmployeeAuthServices.registerEmployee({
-        ...formData,
+      const { confirmPassword, ...registrationData } = formData;
+      const response = await EmployeeAuthServices.registerEmployee({
+        ...registrationData,
         agreedToTerms: agreed,
       });
 
+      setGeneratedEmpId(response.data.empId);
       setRegistered(true);
-      // Removed NotificationContext usage
-      console.log(`New employee registered: ${formData.name} (${formData.empId})`);
+      toast.success('Registration successful! Check your email for verification.');
+
+      console.log(`New employee registered: ${formData.name} (${response.data.empId})`);
+
     } catch (err) {
-      setError(err.response?.data || "Registration failed. Please try again.");
+      console.error('Registration error:', err);
+
+      if (err.response?.data) {
+        const backendErrors = err.response.data;
+        if (typeof backendErrors === 'object') {
+          const fieldErrors = {};
+          Object.keys(backendErrors).forEach(key => fieldErrors[key] = backendErrors[key]);
+          setErrors(fieldErrors);
+          const firstError = Object.values(backendErrors)[0];
+          toast.error(firstError);
+        } else toast.error(backendErrors);
+      } else toast.error(err.message || 'Registration failed. Try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Success screen - combining both approaches
   if (registered) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#e6ecf5]">
@@ -63,8 +233,18 @@ const EmployeeRegister = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Verification Email Sent!
+              Registration Successful!
             </h2>
+            {generatedEmpId && (
+              <>
+                <p className="text-gray-600 mb-2">
+                  Your Employee ID: <span className="font-bold text-[#0260a4]">{generatedEmpId}</span>
+                </p>
+                <p className="text-gray-600 text-sm mb-4">
+                  Please save this Employee ID for login.
+                </p>
+              </>
+            )}
             <p className="text-gray-600">
               We've sent a verification link to{" "}
               <span className="font-semibold">{formData.email}</span>.
@@ -85,14 +265,16 @@ const EmployeeRegister = () => {
             Register another account
           </button>
         </div>
+        <ToastContainer position="top-right" autoClose={5000} />
       </div>
     );
   }
 
+  // Main registration form - combining UI elements from both
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#e6ecf5]">
-      <div className="rounded-3xl shadow-lg bg-white w-full max-w-md p-10">
-        {/* Header */}
+      <div className="rounded-3xl shadow-lg bg-white w-full max-w-2xl p-8 overflow-y-auto max-h-screen">
+        {/* Header - from first code */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
             Employer <span className="text-[#0260a4]">Registration</span>
@@ -102,102 +284,264 @@ const EmployeeRegister = () => {
           </p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center shadow-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Enter your name"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="you@company.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Employee ID */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Employee ID
-            </label>
-            <input
-              type="text"
-              name="empId"
-              value={formData.empId}
-              onChange={handleChange}
-              required
-              placeholder="Enter your employee ID"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <div className="relative">
+        {/* Form - enhanced with validation from second code */}
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Registration Key - from second code */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Registration Key *
+                <span className="text-xs text-gray-500 ml-1">(Provided by your organization)</span>
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                type="text"
+                name="registrationKey"
+                value={formData.registrationKey}
                 onChange={handleChange}
                 required
-                placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 outline-none"
+                placeholder="Enter your registration key"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] bg-yellow-50 ${errors.registrationKey ? 'border-red-500' : 'border-gray-300'
+                  }`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+              {errors.registrationKey && (
+                <p className="text-red-500 text-xs mt-1">{errors.registrationKey}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                You need a valid registration key provided by your organization to create an account.
+              </p>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Enter your full name"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.name ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="you@company.com"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Mobile */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mobile Number *
+              </label>
+              <input
+                type="tel"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                required
+                placeholder="10-digit mobile number"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.mobile ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.mobile && (
+                <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>
+              )}
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gender *
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                required
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.gender ? 'border-red-500' : 'border-gray-300'
+                  }`}
               >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
+                <option value="">Select Gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
+              </select>
+              {errors.gender && (
+                <p className="text-red-500 text-xs mt-1">{errors.gender}</p>
+              )}
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date of Birth *
+              </label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                required
+                max={new Date().toISOString().split('T')[0]}
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.dateOfBirth && (
+                <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+              )}
+            </div>
+
+            {/* Aadhar Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Aadhar Number *
+              </label>
+              <input
+                type="text"
+                name="aadharNumber"
+                value={formData.aadharNumber}
+                onChange={handleChange}
+                required
+                placeholder="12-digit Aadhar number"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.aadharNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.aadharNumber && (
+                <p className="text-red-500 text-xs mt-1">{errors.aadharNumber}</p>
+              )}
+            </div>
+
+            {/* PAN Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PAN Number *
+              </label>
+              <input
+                type="text"
+                name="panNumber"
+                value={formData.panNumber}
+                onChange={handleChange}
+                required
+                placeholder="e.g., ABCDE1234F"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] uppercase ${errors.panNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.panNumber && (
+                <p className="text-red-500 text-xs mt-1">{errors.panNumber}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className={`w-full px-4 py-3 pr-12 rounded-xl border outline-none focus:border-[#0260a4] ${errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className={`w-full px-4 py-3 pr-12 rounded-xl border outline-none focus:border-[#0260a4] ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+                >
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+              )}
+            </div>
+
+            {/* Password requirements */}
+            <div className="md:col-span-2">
+              <p className="text-xs text-gray-500 mt-1">
+                Password must contain at least 8 characters with uppercase, lowercase, number, and special character
+              </p>
+            </div>
+
+            {/* Address */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address *
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                placeholder="Enter your complete address"
+                rows="3"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'
+                  }`}
+              />
+              {errors.address && (
+                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+              )}
             </div>
           </div>
 
-          {/* Agreement */}
-          <div className="flex items-start space-x-2">
+          {/* Agreement - from first code with enhancements */}
+          <div className="flex items-start space-x-2 pt-2">
             <input
               type="checkbox"
               id="agree"
@@ -230,7 +574,7 @@ const EmployeeRegister = () => {
             </label>
           </div>
 
-          {/* Expanded Terms */}
+          {/* Expanded Terms - from first code */}
           {expandedPdf && (
             <div className="w-full my-2 rounded-xl bg-gray-50 p-4 max-h-[40vh] overflow-auto shadow-inner">
               <div className="flex justify-between items-center mb-4">
@@ -252,21 +596,20 @@ const EmployeeRegister = () => {
             </div>
           )}
 
-          {/* Submit */}
+          {/* Submit button - combining both */}
           <button
             type="submit"
-            disabled={!agreed}
-            className={`w-full py-3 rounded-xl font-bold transition ${
-              agreed
-                ? "bg-[#0260a4] text-white hover:scale-105"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+            disabled={loading || !agreed || Object.keys(errors).length > 0}
+            className={`w-full py-3 rounded-xl font-bold transition ${loading || !agreed || Object.keys(errors).length > 0
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-[#0260a4] text-white hover:scale-105"
+              }`}
           >
-            🚀 Register
+            {loading ? "🔄 Registering..." : "🚀 Register"}
           </button>
         </form>
 
-        {/* Footer */}
+        {/* Footer - from first code */}
         <p className="text-sm text-center text-gray-600 mt-8">
           Already have an account?{" "}
           <Link
@@ -277,6 +620,7 @@ const EmployeeRegister = () => {
           </Link>
         </p>
       </div>
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 };
