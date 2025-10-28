@@ -1,3 +1,4 @@
+// In VerifyEmployee.jsx - Add proper logging and fix the flow
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import EmployeeAuthServices from '../api/EmployeeAuthServices';
@@ -14,7 +15,7 @@ const VerifyEmployee = () => {
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
-    console.log("🔍 VerifyEmployee Component Mounted");
+    console.log("🔍 EMPLOYEE Verify Component Mounted");
     console.log("📧 Token from URL:", tokenFromUrl);
     
     setToken(tokenFromUrl || '');
@@ -24,38 +25,45 @@ const VerifyEmployee = () => {
       setMessage('Invalid verification link. No token provided.');
       setIsLoading(false);
       setIsSuccess(false);
+      toast.error('Invalid verification link');
       return;
     }
 
     verifyEmail(tokenFromUrl);
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const verifyEmail = async (token) => {
     try {
       setIsLoading(true);
-      console.log("🔄 Starting employee verification for token:", token);
+      console.log("🔄 Starting EMPLOYEE verification for token:", token);
       
       const response = await EmployeeAuthServices.verifyEmail(token);
-      console.log("✅ Employee verification response:", response);
+      console.log("✅ EMPLOYEE verification response:", response.data);
       
-      setMessage(response.data);
+      setMessage(response.data.message || 'Email verified successfully!');
       setIsSuccess(true);
       toast.success('Email verified successfully!');
       
       // Redirect to employee login after 3 seconds
       setTimeout(() => {
-        console.log("🔄 Redirecting to employee login page");
+        console.log("🔄 Redirecting to EMPLOYEE login page");
         navigate('/employee/employee-login');
       }, 3000);
+      
     } catch (error) {
-      console.error('❌ Employee verification error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error message:', error.message);
+      console.error('❌ EMPLOYEE verification error:', error);
       
       let errorMsg = 'Verification failed. Please try again.';
       
-      if (error.response) {
-        errorMsg = error.response.data || errorMsg;
+      if (error.response?.data) {
+        // Handle different response formats
+        if (typeof error.response.data === 'string') {
+          errorMsg = error.response.data;
+        } else if (error.response.data.message) {
+          errorMsg = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMsg = error.response.data.error;
+        }
       } else if (error.message) {
         errorMsg = error.message;
       }
@@ -63,13 +71,20 @@ const VerifyEmployee = () => {
       setMessage(errorMsg);
       setIsSuccess(false);
       toast.error(errorMsg);
+      
+      // Check if token is invalid/expired
+      if (errorMsg.toLowerCase().includes('invalid') || errorMsg.toLowerCase().includes('expired')) {
+        setTimeout(() => {
+          navigate('/employee/resend-verification');
+        }, 5000);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleManualVerification = () => {
-    console.log("🔄 Manual verification triggered for token:", token);
+    console.log("🔄 Manual EMPLOYEE verification triggered for token:", token);
     if (token) {
       verifyEmail(token);
     }
@@ -86,7 +101,7 @@ const VerifyEmployee = () => {
           <div className="flex flex-col items-center py-6">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
             <p className="text-gray-700 font-medium">Verifying your email...</p>
-            <p className="text-sm text-gray-500 mt-2">Token: {token.substring(0, 20)}...</p>
+            <p className="text-sm text-gray-500 mt-2">Token: {token ? `${token.substring(0, 20)}...` : 'No token'}</p>
           </div>
         ) : (
           <div className="py-4">
@@ -151,7 +166,7 @@ const VerifyEmployee = () => {
           </div>
         )}
       </div>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 };
