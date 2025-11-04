@@ -25,7 +25,10 @@ const AllJobsTable = () => {
   const fetchJobs = async () => {
     try {
       const res = await JobServices.getAllJobs();
-      setJobs(res.data || []);
+      const jobData = res.data || [];
+
+    // Set jobs to state
+    setJobs(jobData.map(item => item.job));
     } catch (err) {
       console.error('❌ Failed to fetch jobs', err);
     }

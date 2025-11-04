@@ -18,16 +18,33 @@ const AdminHome = ({ admin, setAdmin }) => {
     fetchJobs();
   }, []);
 
-  const fetchJobs = async () => {
-    try {
-      const res = await JobServices.getAllJobs();
-      setJobs(res.data || []);
-    } catch (err) {
-      console.error("Failed to fetch jobs", err);
-    } finally {
-      setLoading(false);
-    }
+  const injectSchema = (schema) => {
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = schema;
+    document.head.appendChild(script);
   };
+  const fetchJobs = async () => {
+  try {
+    const res = await JobServices.getAllJobs();
+    const jobData = res.data || [];
+
+    // Set jobs to state
+     setJobs(res.data || []); 
+
+    // Inject schema for each job
+    jobData.forEach(item => {
+      if (item.schema) {
+        injectSchema(item.schema);
+      }
+    });
+
+  } catch (err) {
+    console.error("Failed to fetch jobs", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = async () => {
     try {
@@ -60,7 +77,7 @@ const AdminHome = ({ admin, setAdmin }) => {
     try {
       await JobServices.deleteJob(jobId);
       // Remove the deleted job from the state
-      setJobs(jobs.filter((job) => job.jobId !== jobId));
+      setJobs(jobs.filter((job) => job.job.jobId !== jobId));
       alert("Job deleted successfully!");
     } catch (error) {
       console.error("Failed to delete job:", error);
@@ -70,11 +87,11 @@ const AdminHome = ({ admin, setAdmin }) => {
 
   // Group jobs by company
   const jobsByCompany = jobs.reduce((groups, job) => {
-    const company = job.company;
+    const company = job.job.company;
     if (!groups[company]) {
       groups[company] = [];
     }
-    groups[company].push(job);
+    groups[company].push(job.job);
     return groups;
   }, {});
 
