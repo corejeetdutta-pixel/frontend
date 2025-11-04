@@ -103,7 +103,8 @@ const JobList = ({ user }) => {
     try {
       setLoading(true);
       const res = await JobServices.getAllJobsPaginated(pageNumber);
-      const newJobs = res.data || [];
+      const jobData = res.data || [];
+      const newJobs = jobData.map(item => item.job);
       const allJobs = [...jobs, ...newJobs];
       const uniqueJobs = Array.from(new Map(allJobs.map((j) => [j.jobId, j])).values());
       setJobs(uniqueJobs);
@@ -182,9 +183,9 @@ const JobList = ({ user }) => {
   const filteredJobs = sortJobs(
     jobs.filter(
       (job) =>
-        job.location.toLowerCase().includes(filters.location.toLowerCase()) &&
-        job.company.toLowerCase().includes(filters.company.toLowerCase()) &&
-        job.jobId.toLowerCase().includes(filters.jobId.toLowerCase())
+        job?.location?.toLowerCase().includes(filters.location.toLowerCase()) &&
+        job?.company?.toLowerCase().includes(filters.company.toLowerCase()) &&
+        job?.jobId?.toLowerCase().includes(filters.jobId.toLowerCase())
     )
   );
 

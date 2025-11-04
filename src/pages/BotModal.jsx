@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) => {
   const navigate = useNavigate();
+  const [textValue, setTextValue] = useState("");
   const [answers, setAnswers] = useState({});
   const [started, setStarted] = useState(false);
   const [score, setScore] = useState(null);
@@ -250,6 +251,8 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                               <input
                                 type="text"
                                 className="border p-2 rounded w-full mb-4"
+                                value={textValue}
+                                onChange={(e) => setTextValue(e.target.value)}
                                 placeholder="Your answer..."
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter" && e.target.value.trim()) {
@@ -260,12 +263,11 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                               />
                               <button
                                 onClick={() => {
-                                  const input = document.querySelector('input[type="text"]');
-                                  if (input && input.value.trim()) {
-                                    handleTextAnswer(currentQuestion.id, input.value.trim());
-                                    input.value = "";
-                                  }
-                                }}
+                                if (textValue.trim()) {
+                                handleTextAnswer(currentQuestion.id, textValue.trim());
+                                setTextValue(""); // clear input after submit
+                                }
+                              }}
                                 className="bg-blue-600 text-white px-4 py-2 rounded"
                               >
                                 {currentIndex === allQuestions.length - 1 ? "Submit" : "Next"}
