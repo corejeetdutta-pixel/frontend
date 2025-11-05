@@ -82,11 +82,11 @@ const AdminHome = ({ admin, setAdmin }) => {
 
   // Group jobs by company
   const jobsByCompany = jobs.reduce((groups, job) => {
-    const company = job.company;
+    const company = job.job.company;
     if (!groups[company]) {
       groups[company] = [];
     }
-    groups[company].push(job);
+    groups[company].push(job.job);
     return groups;
   }, {});
 
