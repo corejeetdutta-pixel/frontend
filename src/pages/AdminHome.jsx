@@ -18,26 +18,21 @@ const AdminHome = ({ admin, setAdmin }) => {
     fetchJobs();
   }, []);
 
-  const injectSchema = (schema) => {
+  /*const injectSchema = (schema) => {
     const script = document.createElement("script");
     script.type = "application/ld+json";
     script.text = schema;
     document.head.appendChild(script);
-  };
+  };*/
   const fetchJobs = async () => {
   try {
     const res = await JobServices.getAllJobs();
-    const jobData = res.data || [];
-
     // Set jobs to state
-     setJobs(res.data || []); 
-
+    //console.log(res.data); 
+    setJobs(res.data || []); 
+     
     // Inject schema for each job
-    jobData.forEach(item => {
-      if (item.schema) {
-        injectSchema(item.schema);
-      }
-    });
+    
 
   } catch (err) {
     console.error("Failed to fetch jobs", err);
