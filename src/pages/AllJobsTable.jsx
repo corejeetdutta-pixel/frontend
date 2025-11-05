@@ -28,7 +28,7 @@ const AllJobsTable = () => {
       const jobData = res.data || [];
 
     // Set jobs to state
-    setJobs(jobData.map(item => item.job));
+    setJobs(jobData);
     } catch (err) {
       console.error('❌ Failed to fetch jobs', err);
     }

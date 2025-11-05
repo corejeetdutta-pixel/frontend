@@ -104,8 +104,8 @@ const JobList = ({ user }) => {
       setLoading(true);
       const res = await JobServices.getAllJobsPaginated(pageNumber);
       const jobData = res.data || [];
-      const newJobs = jobData.map(item => item.job);
-      const allJobs = [...jobs, ...newJobs];
+      //const newJobs = jobData.map(item => item.job);
+      const allJobs = [...jobs, ...jobData];
       const uniqueJobs = Array.from(new Map(allJobs.map((j) => [j.jobId, j])).values());
       setJobs(uniqueJobs);
       setHasMore(newJobs.length > 0);
