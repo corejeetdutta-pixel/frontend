@@ -72,7 +72,7 @@ const AdminHome = ({ admin, setAdmin }) => {
     try {
       await JobServices.deleteJob(jobId);
       // Remove the deleted job from the state
-      setJobs(jobs.filter((job) => job.job.jobId !== jobId));
+      setJobs(jobs.filter((job) => job.jobId !== jobId));
       alert("Job deleted successfully!");
     } catch (error) {
       console.error("Failed to delete job:", error);
