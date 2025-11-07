@@ -108,7 +108,7 @@ const JobList = ({ user }) => {
       const allJobs = [...jobs, ...jobData];
       const uniqueJobs = Array.from(new Map(allJobs.map((j) => [j.jobId, j])).values());
       setJobs(uniqueJobs);
-      setHasMore(newJobs.length > 0);
+      setHasMore(jobData.length > 0);
     } catch (err) {
       console.error("❌ Failed to fetch jobs", err);
     } finally {
