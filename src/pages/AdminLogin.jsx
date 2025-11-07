@@ -11,34 +11,87 @@ const AdminLogin = ({ setAdmin }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    let inputValue = value;
+
+    if (name === 'email') {
+      inputValue = value.toLowerCase();
+
+      if (inputValue.length === 0) {
+        setEmailError('');
+      } else {
+        const emailPattern = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailPattern.test(inputValue)) {
+          setEmailError('Please enter a valid email address');
+        } else {
+          setEmailError('');
+        }
+      }
+    }
+
+    if (name === 'password') {
+      if (inputValue.length === 0) {
+        setPasswordError('');
+      } else {
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!passwordPattern.test(inputValue)) {
+          setPasswordError(
+            'Password must have 8+ chars with uppercase, lowercase, number, and special character'
+          );
+        } else {
+          setPasswordError('');
+        }
+      }
+    }
+
+    // Update state
+    setFormData((prev) => ({
+      ...prev,
+      [name]: inputValue,
+    }));
   };
 
   // src/pages/AdminLogin.jsx
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  
-  try {
-    const response = await AdminAuthService.loginAdmin(formData);
-    
-    // Remove localStorage and rely on session cookie
-    setAdmin(response.data.admin); // Update state only
-    
-    alert("Login successful!");
-    navigate("/admin/home");
-  } catch (err) {
-    console.error("Error logging in:", err.response?.data || err.message);
-    alert(err.response?.data?.message || "Invalid credentials");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const emailPattern = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!emailPattern.test(formData.email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    if (!passwordPattern.test(formData.password)) {
+      setPasswordError(
+        'Password must have 8+ chars with uppercase, lowercase, number, and special character'
+      );
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await AdminAuthService.loginAdmin(formData);
+
+      // Remove localStorage and rely on session cookie
+      setAdmin(response.data.admin); // Update state only
+
+      alert("Login successful!");
+      navigate("/admin/home");
+    } catch (err) {
+      console.error("Error logging in:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Invalid credentials");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 px-4 py-12">
       <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-md w-full">
@@ -54,10 +107,12 @@ const handleSubmit = async (e) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className={`w-full px-4 py-3 rounded-lg border ${emailError ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-purple-600 focus:border-transparent`}
               placeholder="Enter your email"
               required
             />
+            {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
           </div>
 
           {/* Password */}
@@ -68,10 +123,12 @@ const handleSubmit = async (e) => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className={`w-full px-4 py-3 rounded-lg border ${passwordError ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-purple-600 focus:border-transparent`}
               placeholder="Enter your password"
               required
             />
+            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
           </div>
 
           {/* Admin Key */}

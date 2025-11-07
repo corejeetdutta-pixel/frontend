@@ -6,42 +6,115 @@ import { toast } from 'react-toastify';
 const EmployeeLogin = ({ setEmployee }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [empId, setEmpId] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
+
+  // Validation patterns
+  const patterns = {
+    email: /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+    password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  };
+
+  // In handleChange for email
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let processedValue = value;
+
+    // Enforce lowercase and remove spaces for email
+    if (name === 'email') {
+      processedValue = value.toLowerCase().replace(/\s/g, '');
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
+
+    // Validate field in real-time
+    validateField(name, processedValue);
+  };
+
+  // Validate a single field
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+
+    if (name === 'email') {
+      if (!value) newErrors.email = 'Email is required';
+      else if (!patterns.email.test(value)) newErrors.email = 'Invalid email address';
+      else delete newErrors.email;
+    }
+
+    if (name === 'password') {
+      if (!value) newErrors.password = 'Password is required';
+      else if (!patterns.password.test(value))
+        newErrors.password = 'Password must be 8+ chars, include uppercase, lowercase, number & special char';
+      else delete newErrors.password;
+    }
+
+    if (name === 'empId') {
+      if (!value) newErrors.empId = 'Employee ID is required';
+      else delete newErrors.empId;
+    }
+
+    setErrors(newErrors);
+    return newErrors;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // Validate all fields
+    const currentErrors = {
+      ...validateField('email', email),
+      ...validateField('password', password),
+      ...validateField('empId', empId)
+    };
+
+    if (Object.keys(currentErrors).length > 0) {
+      toast.error('❌ Fix validation errors before submitting');
+      return;
+    }
+
     setLoading(true);
-    
+
     try {
-      const response = await EmployeeAuthServices.loginEmployee(email, password);
-      
+      // Trim and clean the empId to remove any extra spaces or quotes
+      const cleanedEmpId = empId.trim().replace(/^"+|"+$/g, '');
+
+      console.log("Login attempt:", {
+        email: email,
+        empId: cleanedEmpId,
+        password: "***" // don't log actual password
+      });
+
+      const response = await EmployeeAuthServices.loginEmployee(email, password, cleanedEmpId);
+
       // Set employee data from login response directly
       setEmployee(response.data.user);
-      
+
       // Store token in localStorage
       if (response.data.token) {
         localStorage.setItem('employeeToken', response.data.token);
         localStorage.setItem('employee', JSON.stringify(response.data.user));
       }
-      
+
       toast.success("✅ Login successful!");
-      
+
       // Navigate to employee home
       navigate('/employee/home');
     } catch (err) {
       console.error('Login error:', err);
       const errorMessage = err.response?.data?.message || err.response?.data || '❌ Login failed';
       toast.error(errorMessage);
-      
+
       // Show resend verification link if email not verified
       if (errorMessage.includes('not verified')) {
+        toast.info('📧 Please verify your email before logging in');
         setTimeout(() => {
           navigate('/employee/resend-verification', { state: { email } });
-        }, 3000);
+        }, 2000);
       }
-      
+
       // Clear any invalid tokens
       localStorage.removeItem('employeeToken');
       localStorage.removeItem('employee');
@@ -52,7 +125,19 @@ const EmployeeLogin = ({ setEmployee }) => {
   };
 
   const handleResendVerification = () => {
+    if (!email) {
+      toast.error("❌ Please enter your email first");
+      return;
+    }
     navigate('/employee/resend-verification', { state: { email } });
+  };
+
+  const handleForgotEmpId = () => {
+    if (!email) {
+      toast.error("❌ Please enter your email first");
+      return;
+    }
+    navigate('/employee/forgot-empId', { state: { email } });
   };
 
   return (
@@ -70,27 +155,58 @@ const EmployeeLogin = ({ setEmployee }) => {
         <form onSubmit={handleLogin} className="space-y-6">
           {/* Email */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
             <input
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="px-4 py-3 rounded-xl bg-[#e6ecf5] shadow-[inset_6px_6px_12px_#b0b9c6,inset_-6px_-6px_12px_#ffffff] outline-none focus:shadow-[inset_2px_2px_6px_#b0b9c6,inset_-2px_-2px_6px_#ffffff]"
+              onChange={(e) => {
+                setEmail(e.target.value.trim().toLowerCase());
+                validateField('email', e.target.value.trim());
+              }}
+              className={`px-4 py-3 rounded-xl bg-[#e6ecf5] shadow-[inset_6px_6px_12px_#b0b9c6,inset_-6px_-6px_12px_#ffffff] outline-none focus:shadow-[inset_2px_2px_6px_#b0b9c6,inset_-2px_-2px_6px_#ffffff] ${errors.email ? 'border-red-500 border' : ''}`}
               placeholder="you@company.com"
             />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          </div>
+
+          {/* Employee ID */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Employee ID *
+              <span className="text-xs text-gray-500 ml-1">(Auto-generated during registration)</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={empId}
+              onChange={(e) => {
+                setEmpId(e.target.value);
+                validateField('empId', e.target.value);
+              }}
+              className={`px-4 py-3 rounded-xl bg-[#e6ecf5] shadow-[inset_6px_6px_12px_#b0b9c6,inset_-6px_-6px_12px_#ffffff] outline-none focus:shadow-[inset_2px_2px_6px_#b0b9c6,inset_-2px_-2px_6px_#ffffff] ${errors.empId ? 'border-red-500 border' : ''}`}
+              placeholder="Enter your Employee ID"
+            />
+            {errors.empId && <p className="text-red-500 text-xs mt-1">{errors.empId}</p>}
           </div>
 
           {/* Password */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Password *
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-xl bg-[#e6ecf5] shadow-[inset_6px_6px_12px_#b0b9c6,inset_-6px_-6px_12px_#ffffff] outline-none focus:shadow-[inset_2px_2px_6px_#b0b9c6,inset_-2px_-2px_6px_#ffffff]"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validateField('password', e.target.value);
+                }}
+                className={`w-full px-4 py-3 pr-12 rounded-xl bg-[#e6ecf5] shadow-[inset_6px_6px_12px_#b0b9c6,inset_-6px_-6px_12px_#ffffff] outline-none focus:shadow-[inset_2px_2px_6px_#b0b9c6,inset_-2px_-2px_6px_#ffffff] ${errors.password ? 'border-red-500 border' : ''}`}
                 placeholder="••••••••"
               />
               <button
@@ -101,6 +217,7 @@ const EmployeeLogin = ({ setEmployee }) => {
                 {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
           </div>
 
           {/* Submit */}
@@ -113,17 +230,41 @@ const EmployeeLogin = ({ setEmployee }) => {
           </button>
         </form>
 
-        {/* Resend Verification Section */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-700 text-center mb-2">
-            Didn't receive verification email?
-          </p>
-          <button
-            onClick={handleResendVerification}
-            className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium underline"
-          >
-            Resend Verification Email
-          </button>
+        {/* Help Sections */}
+        <div className="space-y-4 mt-6">
+          {/* Resend Verification Section */}
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-700 text-center mb-2">
+              Didn't receive verification email?
+            </p>
+            <button
+              onClick={handleResendVerification}
+              disabled={!email}
+              className={`w-full text-sm font-medium underline ${email
+                ? 'text-blue-600 hover:text-blue-800'
+                : 'text-gray-400 cursor-not-allowed'
+                }`}
+            >
+              Resend Verification Email
+            </button>
+          </div>
+
+          {/* Forgot Employee ID Section */}
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-sm text-amber-700 text-center mb-2">
+              Forgot your Employee ID?
+            </p>
+            <button
+              onClick={handleForgotEmpId}
+              disabled={!email}
+              className={`w-full text-sm font-medium underline ${email
+                ? 'text-amber-600 hover:text-amber-800'
+                : 'text-gray-400 cursor-not-allowed'
+                }`}
+            >
+              Retrieve Employee ID
+            </button>
+          </div>
         </div>
 
         {/* Footer */}

@@ -17,7 +17,7 @@ const MyApplications = ({ user }) => {
         setLoading(true);
         const res = await axios.get(`/api/applications/user/${userId}`);
         const applications = res.data;
-
+        //console.log("Applications:", applications);
         const jobPromises = applications.map((app) =>
           JobServices.getJobById(app.jobId).then((jobRes) => ({
             ...jobRes.data,
@@ -26,6 +26,7 @@ const MyApplications = ({ user }) => {
         );
 
         const jobs = await Promise.all(jobPromises);
+        //console.log("Applied Jobs:", jobs);
         setAppliedJobs(jobs);
       } catch (err) {
         console.error("❌ Failed to fetch applied jobs", err);
@@ -78,13 +79,13 @@ const MyApplications = ({ user }) => {
           </thead>
           <tbody>
             {appliedJobs.map((job) => (
-              <tr key={job.jobId} className="border-t">
-                <td className="py-3 px-4">{job.title}</td>
-                <td className="py-3 px-4">{job.company}</td>
-                <td className="py-3 px-4">{job.location}</td>
+              <tr key={job.job.jobId} className="border-t">
+                <td className="py-3 px-4">{job.job.title}</td>
+                <td className="py-3 px-4">{job.job.company}</td>
+                <td className="py-3 px-4">{job.job.location}</td>
                 <td className="py-3 px-4">
-                  {job.appliedAt
-                    ? new Date(job.appliedAt).toLocaleDateString()
+                  {job.job.appliedAt
+                    ? new Date(job.job.appliedAt).toLocaleDateString()
                     : "N/A"}
                 </td>
                 <td className="py-3 px-4 text-green-600 font-semibold">Applied</td>

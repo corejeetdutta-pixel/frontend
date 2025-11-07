@@ -103,11 +103,12 @@ const JobList = ({ user }) => {
     try {
       setLoading(true);
       const res = await JobServices.getAllJobsPaginated(pageNumber);
-      const newJobs = res.data || [];
-      const allJobs = [...jobs, ...newJobs];
+      const jobData = res.data || [];
+      //const newJobs = jobData.map(item => item.job);
+      const allJobs = [...jobs, ...jobData];
       const uniqueJobs = Array.from(new Map(allJobs.map((j) => [j.jobId, j])).values());
       setJobs(uniqueJobs);
-      setHasMore(newJobs.length > 0);
+      setHasMore(jobData.length > 0);
     } catch (err) {
       console.error("❌ Failed to fetch jobs", err);
     } finally {
@@ -182,9 +183,9 @@ const JobList = ({ user }) => {
   const filteredJobs = sortJobs(
     jobs.filter(
       (job) =>
-        job.location.toLowerCase().includes(filters.location.toLowerCase()) &&
-        job.company.toLowerCase().includes(filters.company.toLowerCase()) &&
-        job.jobId.toLowerCase().includes(filters.jobId.toLowerCase())
+        job?.location?.toLowerCase().includes(filters.location.toLowerCase()) &&
+        job?.company?.toLowerCase().includes(filters.company.toLowerCase()) &&
+        job?.jobId?.toLowerCase().includes(filters.jobId.toLowerCase())
     )
   );
 
