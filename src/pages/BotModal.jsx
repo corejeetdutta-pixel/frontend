@@ -356,7 +356,7 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                           </svg>
                         </div>
                         <h2 className="text-green-700 text-xl font-bold mb-2">✅ Qualified!</h2>
-                        <p className="mb-4">Your score: {score}/150</p>
+                        <p className="mb-4">Your score: {score}/100</p>
                         <p className="text-gray-700 mb-6">
                           Would you like to enhance your resume for this specific position?
                         </p>
