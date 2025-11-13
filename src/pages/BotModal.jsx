@@ -323,6 +323,7 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                           </svg>
                         </div>
                         <h2 className="text-red-600 text-xl font-bold mb-2">Not Qualified</h2>
+                        {/* //test done */}
                         <p className="mb-4">Your score: {score}/100</p>
                         <p className="text-gray-600 mb-6">
                           Unfortunately, your qualifications don't meet the requirements for this
