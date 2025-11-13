@@ -1,0 +1,144 @@
+.templates-section {
+    font-family: "Poppins", sans-serif;
+    color: #333;
+    background: #f9fafc;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0160a4;
+    margin-bottom: 16px;
+}
+
+.template-category {
+    margin-bottom: 40px;
+}
+
+.category-title {
+    font-size: 1.2rem;
+    color: #0160a4;
+    margin-bottom: 16px;
+    border-left: 4px solid #0160a4;
+    padding-left: 10px;
+}
+
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.template-card {
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.1);
+}
+
+.template-img-wrapper {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 10px 10px 0 0;
+}
+
+.template-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Overlay with background and centered button --- */
+.template-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(1, 96, 164, 0.312);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.template-card:hover .template-overlay {
+    opacity: 1;
+}
+
+.template-download-button {
+    background: #fff;
+    color: #0160a4;
+    border: none;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 3;
+}
+
+.template-download-button:hover {
+    background: #0160a4;
+    color: #fff;
+    transform: scale(1.08);
+}
+
+/* --- Locked overlay (for premium templates) --- */
+.locked-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(1, 96, 164, 0.312);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    z-index: 3;
+    border-radius: 10px 10px 0 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.lock-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.locked-text {
+    font-weight: 700;
+}
+
+.locked-caption {
+    font-size: 0.85rem;
+    margin-top: 4px;
+    opacity: 0.9;
+    text-align: center;
+}
+
+/* --- Template name below the image --- */
+.template-name {
+    text-align: center;
+    font-weight: 600;
+    padding: 10px;
+    background: #f3f7fb;
+    color: #0160a4;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 10px 10px;
+    z-index: 1;
+}

@@ -5,5 +5,9 @@
 
 /* Optional custom styles */
 body {
+  margin: 0;           /* 👈 remove default browser margin */
+  padding: 0;          /* 👈 ensure no padding */
+  width: 100% !important;
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }

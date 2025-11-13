@@ -1,0 +1,351 @@
+.main-container {
+    margin: 0 auto;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    color: #162335;
+    background: #f7fbff;
+    border-radius: 18px;
+    min-height: 92vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding: 20px;
+}
+
+/* Split columns */
+.dashboard {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* LEFT SIDE */
+.left-panel {
+    flex: 0 0 64%;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+    flex: 0 0 34%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* ---- Cards ---- */
+.resume-history,
+.payment-history,
+.user-plan {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    box-shadow: none;
+}
+
+.resume-history h2,
+.payment-history h2,
+.user-plan h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0160A4;
+    margin-bottom: 1rem;
+}
+
+.resume-empty,
+.empty-state {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1rem;
+    padding: 1rem 0;
+}
+
+/* Payment table */
+.payment-history table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.99rem;
+}
+
+.payment-history th,
+.payment-history td {
+    text-align: left;
+    padding: 0.75rem 0.6rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-history th {
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.payment-history td {
+    color: #23395c;
+}
+
+.status {
+    padding: 0.3em 0.8em;
+    border-radius: 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: #eef2fa;
+    color: #0160A4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.status.paid {
+    background: #d1fae5;
+    color: #15803d;
+}
+
+.status.pending {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status.failed,
+.status.unpaid {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Plan summary */
+.plan-type {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+    background: #0160A4;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.plan-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.plan-details span {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.plan-details strong {
+    color: #0160A4;
+    font-size: 1.1em;
+}
+
+/* ---- Buttons ---- */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.resume-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.resume-btn {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.9rem 1.2rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 🌊 Primary Button */
+.resume-btn-primary {
+    background: linear-gradient(135deg, #0071bc, #005b94);
+    color: #fff;
+}
+
+.resume-btn-primary:hover {
+    background: linear-gradient(135deg, #005b94, #004876);
+    transform: translateY(-2px);
+}
+
+/* 💡 Secondary Button */
+.resume-btn-secondary {
+    background: #f3f6fa;
+    color: #0071bc;
+    border: 1.5px solid #dce3eb;
+}
+
+.resume-btn-secondary:hover {
+    background: #e9f1f9;
+    color: #005b94;
+    transform: translateY(-2px);
+}
+
+/* 🧠 Tertiary Button (for organization plan) */
+.resume-btn-tertiary {
+    background: #fff8e6;
+    color: #9a7700;
+    border: 1.5px solid #ffe29b;
+}
+
+.resume-btn-tertiary:hover {
+    background: #ffefbf;
+    transform: translateY(-2px);
+    color: black;
+}
+
+
+/* Loader & error */
+.main-loader,
+.main-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
+    font-size: 1.18rem;
+    color: #0160A4;
+    background: #f7fbff;
+    border-radius: 14px;
+}
+
+.btn-tertiary {
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 700;
+}
+
+.btn-tertiary:hover {
+    background: #bfdbfe;
+}
+
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+    .dashboard {
+        flex-direction: column-reverse;
+        gap: 1.5rem;
+    }
+
+    .left-panel,
+    .right-panel {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .user-plan {
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .main-container {
+        padding: 1rem 0.8rem;
+        border-radius: 8px;
+    }
+
+    .resume-history,
+    .payment-history,
+    .user-plan {
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .plan-type {
+        font-size: 0.95rem;
+        padding: 0.4rem 1rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.7rem 0;
+    }
+}
+
+
+.resumehist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 2rem;
+}
+
+.resumehist-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 10px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.resumehist-card:hover {
+    box-shadow: 0 6px 15px rgba(1, 96, 164, 0.15);
+}
+
+.resumehist-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0160A4;
+    margin-bottom: 0.5rem;
+    margin-top: 5px;
+}
+
+.resumehist-date,
+.resumehist-score {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0.3rem 0;
+}
+
+.resumehist-score span {
+    font-weight: 600;
+    color: #0160A4;
+}
+
+/* Buttons */
+.resumehist-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f3f4f6;
+    color: #0160A4;
+    transition: background 0.25s, transform 0.2s;
+    margin-top: 1rem;
+}
+
+.resumehist-btn-primary {
+    background: #0160a429;
+    color: #004876;
+}
+
+.resumehist-btn-primary:hover {
+    background: #01487c;
+    color: white;
+}
