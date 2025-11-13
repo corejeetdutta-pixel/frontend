@@ -24,6 +24,13 @@ const JobDetail = () => {
     }
   }, [jobId]);
 
+  const injectSchema = (schema) => {
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = schema;
+    document.head.appendChild(script);
+  };
+
   const fetchJobDetails = async () => {
   try {
     console.log('Fetching job details for:', jobId);
@@ -36,7 +43,8 @@ const JobDetail = () => {
     
     const res = await axios.get(`/api/jobs/view/${jobId}`, config);
     console.log('Job data received:', res.data);
-    setJob(res.data);
+    injectSchema(res.data.schema);
+    setJob(res.data.job);
     setError(null);
   } catch (err) {
     console.error('Error fetching job:', err);

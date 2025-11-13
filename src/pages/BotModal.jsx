@@ -10,6 +10,7 @@ import Analyse from "./resumeWriter/Analyse";
 
 const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) => {
   const navigate = useNavigate();
+  const [textValue, setTextValue] = useState("");
   const [answers, setAnswers] = useState({});
   const [started, setStarted] = useState(false);
   const [score, setScore] = useState(null);
@@ -238,77 +239,70 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                       </div>
                     )}
 
-                    {started && !loadingQuestions && step === "questions" && currentQuestion && (
-                      <div>
-                        <h2 className="text-lg font-semibold mb-4">
-                          Question {currentIndex + 1} of {allQuestions.length}
-                        </h2>
-                        <p className="mb-4 text-gray-700">{currentQuestion.text}</p>
-
-                        {currentQuestion.type === "text" ? (
-                          <div className="flex flex-col items-center">
-                            <input
-                              type="text"
-                              className="border p-2 rounded w-full mb-4 max-w-md"
-                              placeholder="Your answer..."
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && e.target.value.trim()) {
-                                  handleTextAnswer(currentQuestion.id, e.target.value.trim());
-                                  e.target.value = "";
+                      {started && !loadingQuestions && step === "questions" && currentQuestion && (
+                        <div>
+                          <h2 className="text-lg font-semibold mb-4">
+                            Question {currentIndex + 1} of {allQuestions.length}
+                          </h2>
+                          <p className="mb-4 text-gray-700">{currentQuestion.text}</p>
+                          {currentQuestion.type === "text" ? (
+                            <div className="flex flex-col items-center">
+                              <input
+                                type="text"
+                                className="border p-2 rounded w-full mb-4"
+                                value={textValue}
+                                onChange={(e) => setTextValue(e.target.value)}
+                                placeholder="Your answer..."
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && e.target.value.trim()) {
+                                    handleTextAnswer(currentQuestion.id, e.target.value.trim());
+                                    e.target.value = "";
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() => {
+                                if (textValue.trim()) {
+                                handleTextAnswer(currentQuestion.id, textValue.trim());
+                                setTextValue(""); // clear input after submit
                                 }
                               }}
-                            />
-                            <button
-                              onClick={() => {
-                                const input = document.querySelector('input[type="text"]');
-                                if (input && input.value.trim()) {
-                                  handleTextAnswer(currentQuestion.id, input.value.trim());
-                                  input.value = "";
-                                }
-                              }}
-                              className="bg-blue-600 text-white px-4 py-2 rounded"
-                            >
-                              {currentIndex === allQuestions.length - 1 ? "Submit" : "Next"}
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="space-y-2 mb-4 max-w-md mx-auto">
-                              {currentQuestion.options.map((opt, idx) => (
-                                <label
-                                  key={idx}
-                                  className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
-                                >
-                                  <input
-                                    type="radio"
-                                    name="mcq-option"
-                                    checked={selectedOption === idx}
-                                    onChange={() => setSelectedOption(idx)}
-                                    className="mr-3"
-                                  />
-                                  <span className="text-left">{opt}</span>
-                                </label>
-                              ))}
+                                className="bg-blue-600 text-white px-4 py-2 rounded"
+                              >
+                                {currentIndex === allQuestions.length - 1 ? "Submit" : "Next"}
+                              </button>
                             </div>
-                            <button
-                              onClick={
-                                currentIndex === allQuestions.length - 1
-                                  ? handleSubmit
-                                  : handleNextMcq
-                              }
-                              disabled={selectedOption === null || submitting}
-                              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-                            >
-                              {currentIndex === allQuestions.length - 1
-                                ? submitting
-                                  ? "Submitting..."
-                                  : "Submit"
-                                : "Next"}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
+                          ) : (
+                            <>
+                              <div className="space-y-2 mb-4">
+                                {currentQuestion.options.map((opt, idx) => (
+                                  <label key={idx} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input
+                                      type="radio"
+                                      name="mcq-option"
+                                      checked={selectedOption === idx}
+                                      onChange={() => setSelectedOption(idx)}
+                                      className="mr-3"
+                                    />
+                                    <span className="text-left">{opt}</span>
+                                  </label>
+                                ))}
+                              </div>
+                              <button
+                                onClick={currentIndex === allQuestions.length - 1 ? handleSubmit : handleNextMcq}
+                                disabled={selectedOption === null || submitting}
+                                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                              >
+                                {currentIndex === allQuestions.length - 1
+                                  ? submitting
+                                    ? "Submitting..."
+                                    : "Submit"
+                                  : "Next"}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
 
                     {step === "results" && !qualified && (
                       <div className="py-10">
@@ -329,7 +323,7 @@ const BotModal = ({ job, user, onClose, onFinish, isApplied: initialApplied }) =
                           </svg>
                         </div>
                         <h2 className="text-red-600 text-xl font-bold mb-2">Not Qualified</h2>
-                        <p className="mb-4">Your score: {score}/150</p>
+                        <p className="mb-4">Your score: {score}/100</p>
                         <p className="text-gray-600 mb-6">
                           Unfortunately, your qualifications don't meet the requirements for this
                           position.
