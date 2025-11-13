@@ -1,0 +1,172 @@
+.result-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background: #f7fbff;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* Left side */
+.result-left {
+    position: relative;
+    width: 30%;
+    min-width: 300px;
+    background: #ffffff;
+    padding: 40px 30px;
+    box-shadow: 4px 0 12px rgb(24 64 164 / 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    box-sizing: border-box;
+}
+
+/* 🔹 Plan info box (top-right corner) */
+.plan-info {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 14px;
+    gap: 4px;
+    color: #1f2937;
+}
+
+.plan-type {
+    background: #e8f2ff;
+    color: #1d4ed8;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.downloads-remaining {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* ATS Score styling */
+.ats-score-section {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    padding-bottom: 0;
+}
+
+.ats-score-section h3 {
+    font-weight: 700;
+    font-size: 20px;
+    color: #1f2937;
+    margin-bottom: 0px;
+}
+
+.ats-score-label-text {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #28a745;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    user-select: none;
+}
+
+/* Score Label */
+.ats-score-label {
+    font-weight: 700;
+    font-size: 20px;
+    color: #1f2937;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* Card for score value */
+.ats-score-card {
+    background: #f0f9ff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(24, 64, 164, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* height: 100px; */
+}
+
+.ats-score-value {
+    font-size: 56px;
+    font-weight: 800;
+    color: #28a745;
+    text-shadow: 0 6px 21px rgba(50, 180, 120, 0.15);
+}
+
+/* Resume generated message */
+.resume-generated-text h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.resume-generated-text p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #6186a9;
+    max-width: 90%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Right side */
+.result-right {
+    width: 70%;
+    background: #f5fafd;
+    padding: 36px 48px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Responsive for mobile */
+@media (max-width: 900px) {
+    .result-container {
+        flex-direction: column;
+        overflow-y: auto;
+        /* Everything scrollable */
+        height: auto;
+    }
+
+    .result-left,
+    .result-right {
+        width: 100%;
+        min-width: auto;
+        padding: 24px 16px;
+        position: relative;
+    }
+
+    .result-left {
+        box-shadow: none;
+        margin-bottom: 20px;
+    }
+
+    .plan-info {
+        position: static;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+}

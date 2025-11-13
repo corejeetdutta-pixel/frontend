@@ -3,7 +3,7 @@ import JobServices from '../api/JobServices';
 import { 
   Trash2, Edit3, Share2, Save, X, Eye, Users, Search, 
   XCircle, Download, ChevronLeft, ChevronRight, Copy, Calendar,
-  Mail, Clock, Video
+  Mail, Clock, Video, User, FileText
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -36,8 +36,12 @@ const MyPostedJobs = () => {
     meetLink: '',
     password: '',
     duration: '30',
-    contactEmail: ''
+    contactEmail: '',
+    open: false
   });
+  console.log("Myposted job :-"+ applicants.qualification);
+  console.log("Myposted job :-"+ applicants.experience);
+  
 
   useEffect(() => {
     fetchPostedJobs();
@@ -57,41 +61,6 @@ const MyPostedJobs = () => {
         navigate('/employee/employee-login');
       }
     }
-  };
-
-  const fetchApplicants = async (jobId, jobTitle) => {
-  try {
-    setLoadingApplicants(true);
-    console.log('Fetching applicants for job:', jobId);
-    
-    const res = await JobServices.getApplicantsForJob(jobId);
-    console.log('Applicants response:', res.data);
-    
-    // Ensure we always set an array
-    const applicantsData = Array.isArray(res.data) ? res.data : [];
-    setApplicants(applicantsData);
-    setCurrentJobTitle(jobTitle);
-    setCurrentJobId(jobId);
-    setApplicantsModalOpen(true);
-    
-    if (applicantsData.length === 0) {
-      console.log('No applicants found for this job');
-    }
-  } catch (err) {
-    console.error('Failed to fetch applicants', err);
-    const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to fetch applicants';
-    alert(`Error: ${errorMessage}`);
-    
-    // Set empty array on error
-    setApplicants([]);
-  } finally {
-    setLoadingApplicants(false);
-  }
-};
-
-  const closeApplicantsView = () => {
-    setApplicantsModalOpen(false);
-    setApplicants([]);
   };
 
   // Handle job editing
@@ -133,7 +102,12 @@ const MyPostedJobs = () => {
     }
   };
 
-  const handleShare = (jobId) => {
+  const handleShare = (shortId) => {
+    const url = `${window.location.origin}/${shortId}`;
+    navigator.clipboard.writeText(url);
+    alert('📋 Job link copied to clipboard!');
+  };
+  const handleShareByJobId = (jobId) => {
     const url = `${window.location.origin}/jobs/${jobId}`;
     navigator.clipboard.writeText(url);
     alert('📋 Job link copied to clipboard!');
@@ -147,37 +121,82 @@ const MyPostedJobs = () => {
     setViewJob(null);
   };
 
-  // Handle interview scheduling
-  // Handle interview scheduling
-// Handle interview scheduling
-const handleScheduleInterviews = async (job) => {
-  if (!window.confirm('Schedule interviews for this job? This will send emails to qualified applicants.')) {
-    return;
-  }
-  
-  setInterviewLoading(prev => ({ ...prev, [job.jobId]: true }));
+  // Handle viewing applicants for a job
+  // Handle viewing applicants for a job
+// Handle viewing applicants for a job
+const handleViewApplicants = async (job) => {
+  setLoadingApplicants(true);
+  setCurrentJobId(job.jobId);
+  setCurrentJobTitle(job.title);
   
   try {
-    // Send interview details to backend for processing
-    const response = await JobServices.scheduleInterviews({
-      jobId: job.jobId,
-      jobTitle: job.title,
-      company: job.company,
-      interviewDetails: {
-        ...interviewDetails,
-        contactEmail: job.contactEmail || interviewDetails.contactEmail
-      }
-    });
+    // FIXED: Use getApplicantsForJob instead of getJobApplicants
+    const response = await JobServices.getApplicantsForJob(job.jobId);
+    console.log('Applicants response:', response);
     
-    alert(`Interview invitations sent to ${response.data.qualifiedCount} qualified applicants! ${response.data.alreadyProcessedCount} applicants were already processed.`);
+    // Handle different response structures
+    if (response.data && response.data.data) {
+      setApplicants(response.data.data);
+    } else if (response.data && Array.isArray(response.data)) {
+      setApplicants(response.data);
+    } else if (response.data && response.data.applicants) {
+      setApplicants(response.data.applicants);
+    } else {
+      console.warn('Unexpected response format:', response.data);
+      setApplicants([]);
+    }
     
+    setApplicantsModalOpen(true);
   } catch (err) {
-    console.error('Failed to schedule interviews', err);
-    alert(err.response?.data || 'Failed to schedule interviews');
+    console.error('Failed to fetch applicants', err);
+    if (err.response?.status === 403) {
+      alert('Access forbidden. Please check your permissions or login again.');
+    } else if (err.response?.status === 404) {
+      alert('Job not found or no applicants available.');
+    } else {
+      alert('Failed to load applicants: ' + (err.response?.data?.message || err.message));
+    }
   } finally {
-    setInterviewLoading(prev => ({ ...prev, [job.jobId]: false }));
+    setLoadingApplicants(false);
   }
 };
+
+  const closeApplicantsModal = () => {
+    setApplicantsModalOpen(false);
+    setApplicants([]);
+    setCurrentJobId(null);
+    setCurrentJobTitle('');
+  };
+
+  // Handle interview scheduling
+  const handleScheduleInterviews = async (job) => {
+    if (!window.confirm('Schedule interviews for this job? This will send emails to qualified applicants.')) {
+      return;
+    }
+    
+    setInterviewLoading(prev => ({ ...prev, [job.jobId]: true }));
+    
+    try {
+      const response = await JobServices.scheduleInterviews({
+        jobId: job.jobId,
+        jobTitle: job.title,
+        company: job.company,
+        interviewDetails: {
+          ...interviewDetails,
+          contactEmail: job.contactEmail || interviewDetails.contactEmail
+        }
+      });
+      
+      alert(`Interview invitations sent to ${response.data.qualifiedCount} qualified applicants! ${response.data.alreadyProcessedCount} applicants were already processed.`);
+      
+    } catch (err) {
+      console.error('Failed to schedule interviews', err);
+      alert(err.response?.data || 'Failed to schedule interviews');
+    } finally {
+      setInterviewLoading(prev => ({ ...prev, [job.jobId]: false }));
+    }
+  };
+
   // Filter jobs
   const filteredJobs = jobs.filter(
     (job) =>
@@ -203,6 +222,13 @@ const handleScheduleInterviews = async (job) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return isNaN(date) ? 'Invalid Date' : date.toLocaleDateString('en-GB');
+  };
+
+  // Format date time for applicants
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return isNaN(date) ? 'Invalid Date' : date.toLocaleString('en-GB');
   };
 
   // Export jobs to PDF
@@ -245,8 +271,17 @@ const handleScheduleInterviews = async (job) => {
     doc.save(`my-jobs-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
+  // Download applicant resume
+  const downloadResume = (resumeUrl, applicantName) => {
+    if (resumeUrl) {
+      window.open(resumeUrl, '_blank');
+    } else {
+      alert('No resume available for ' + applicantName);
+    }
+  };
+
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
+    <div className="max-w-7xl mx-auto py-10 px-4">
       {/* Header and Filter */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-2xl font-bold text-blue-700">📋 My Posted Jobs</h2>
@@ -281,95 +316,108 @@ const handleScheduleInterviews = async (job) => {
       </div>
 
       {/* Interview Details Modal */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ display: interviewDetails.open ? 'flex' : 'none' }}>
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-blue-700">Interview Details</h3>
-            <button 
-              onClick={() => setInterviewDetails({ ...interviewDetails, open: false })} 
-              className="text-gray-500 hover:text-red-600"
-            >
-              <X size={24} />
-            </button>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Interview Date</label>
-              <input
-                type="date"
-                value={interviewDetails.date}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, date: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Interview Time</label>
-              <input
-                type="time"
-                value={interviewDetails.time}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, time: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Google Meet Link</label>
-              <input
-                type="url"
-                placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                value={interviewDetails.meetLink}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, meetLink: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meeting Password (if any)</label>
-              <input
-                type="text"
-                placeholder="Optional"
-                value={interviewDetails.password}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, password: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
-              <select
-                value={interviewDetails.duration}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, duration: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+      {interviewDetails.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-blue-700">Interview Details</h3>
+              <button 
+                onClick={() => setInterviewDetails({ ...interviewDetails, open: false })} 
+                className="text-gray-500 hover:text-red-600"
               >
-                <option value="30">30 minutes</option>
-                <option value="45">45 minutes</option>
-                <option value="60">60 minutes</option>
-              </select>
+                <X size={24} />
+              </button>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
-              <input
-                type="email"
-                placeholder="hr@company.com"
-                value={interviewDetails.contactEmail}
-                onChange={(e) => setInterviewDetails({ ...interviewDetails, contactEmail: e.target.value })}
-                className="w-full border rounded px-3 py-2"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Interview Date</label>
+                <input
+                  type="date"
+                  value={interviewDetails.date}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, date: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Interview Time</label>
+                <input
+                  type="time"
+                  value={interviewDetails.time}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, time: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Google Meet Link</label>
+                <input
+                  type="url"
+                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                  value={interviewDetails.meetLink}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, meetLink: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Meeting Password (if any)</label>
+                <input
+                  type="text"
+                  placeholder="Optional"
+                  value={interviewDetails.password}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, password: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                <select
+                  value={interviewDetails.duration}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, duration: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                >
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">60 minutes</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                <input
+                  type="email"
+                  placeholder="hr@company.com"
+                  value={interviewDetails.contactEmail}
+                  onChange={(e) => setInterviewDetails({ ...interviewDetails, contactEmail: e.target.value })}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+              
+              <button
+                onClick={() => setInterviewDetails({ ...interviewDetails, open: false })}
+                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+              >
+                Save Details
+              </button>
             </div>
-            
-            <button
-              onClick={() => setInterviewDetails({ ...interviewDetails, open: false })}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-            >
-              Save Details
-            </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Use the reusable ApplicantModal */}
+      <ApplicantModal
+        isOpen={applicantsModalOpen}
+        onClose={closeApplicantsModal}
+        applicants={applicants}
+        currentJobTitle={currentJobTitle}
+        loadingApplicants={loadingApplicants}
+        formatDateTime={formatDateTime}
+        downloadResume={downloadResume}
+      />
 
       {/* Jobs Table */}
       {filteredJobs.length === 0 ? (
@@ -400,8 +448,8 @@ const handleScheduleInterviews = async (job) => {
                   <th className="px-4 py-3 text-left">Salary</th>
                   <th className="px-4 py-3 text-left">Openings</th>
                   <th className="px-4 py-3 text-left">Last Date</th>
+                  <th className="px-4 py-3 text-left">Applied</th>
                   <th className="px-4 py-3 text-left min-w-[150px]">Actions</th>
-                  <th className="px-4 py-3 text-left min-w-[120px]">Applied</th>
                   <th className="px-4 py-3 text-left min-w-[140px]">Interview</th>
                 </tr>
               </thead>
@@ -495,6 +543,16 @@ const handleScheduleInterviews = async (job) => {
                       )}
                     </td>
                     <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleViewApplicants(job)}
+                        className="flex items-center gap-2 bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm"
+                        title="View applicants"
+                      >
+                        <Users size={16} />
+                        View Applicants
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex gap-2">
                         {editJobId === job.jobId ? (
                           <>
@@ -530,7 +588,18 @@ const handleScheduleInterviews = async (job) => {
                               <Trash2 size={18} />
                             </button>
                             <button 
-                              onClick={() => handleShare(job.jobId)} 
+                              onClick={() => 
+                                
+                                {
+                                  if(job.shortId){
+                                  handleShare(job.shortId)
+
+                                }else{
+                                  handleShareByJobId(job.jobId)
+
+                                }
+                                }
+                              } 
                               className="text-blue-500 hover:text-blue-700"
                               title="Share job link"
                             >
@@ -547,15 +616,7 @@ const handleScheduleInterviews = async (job) => {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => fetchApplicants(job.jobId, job.title)}
-                        className="flex items-center justify-center gap-1 bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 text-sm"
-                        title="View applicants"
-                      >
-                        <Users size={14} /> View
-                      </button>
-                    </td>
+                    
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-2">
                         <button
@@ -636,17 +697,6 @@ const handleScheduleInterviews = async (job) => {
           )}
         </>
       )}
-
-      {/* Applicant Modal */}
-      <ApplicantModal
-        isOpen={applicantsModalOpen}
-        onClose={closeApplicantsView}
-        applicants={applicants}
-        currentJobTitle={currentJobTitle}
-        currentJobId={currentJobId}
-        loadingApplicants={loadingApplicants}
-        formatDate={formatDate}
-      />
 
       {/* Job Details Modal */}
       {viewJob && (

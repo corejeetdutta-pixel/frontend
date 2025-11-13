@@ -61,7 +61,7 @@ const AdminRegister = () => {
       console.log(response.data);
     } catch (err) {
       console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Something went wrong!');
+      alert(err.response?.data?.message || 'Something went wrong! Please fill correct details..');
     }
   };
 

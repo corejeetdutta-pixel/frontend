@@ -54,10 +54,15 @@ const AdminHome = ({ admin, setAdmin }) => {
     }
   };
 
-  const handleShare = (jobId) => {
+  const handleShare = (shortId) => {
+    const url = `${window.location.origin}/${shortId}`;
+    navigator.clipboard.writeText(url);
+    alert('📋 Job link copied to clipboard!');
+  };
+  const handleShareByJobId = (jobId) => {
     const url = `${window.location.origin}/jobs/${jobId}`;
     navigator.clipboard.writeText(url);
-    alert("Job link copied to clipboard!");
+    alert('📋 Job link copied to clipboard!');
   };
 
   const handleView = (job) => {
@@ -100,6 +105,7 @@ const AdminHome = ({ admin, setAdmin }) => {
           jobsByCompany={jobsByCompany}
           loading={loading}
           handleShare={handleShare}
+          handleShareByJobId={handleShareByJobId}
           handleView={handleView}
           onJobDelete={handleDeleteJob}
         />

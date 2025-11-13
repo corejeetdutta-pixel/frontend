@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthServices from "../api/AuthServices";
@@ -15,7 +14,7 @@ const Register = ({ setUser }) => {
   const [expandedPdf, setExpandedPdf] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [serverMessage, setServerMessage] = useState("");
-
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,7 +30,7 @@ const Register = ({ setUser }) => {
     github: "",
     skills: ["", "", "", "", ""],
     profilePicture: "", // base64
-    resume: "" // base64 PDF
+    resume: null // File object for PDF
   });
 
   const [errors, setErrors] = useState({});
@@ -152,7 +151,7 @@ const Register = ({ setUser }) => {
         break;
 
       case "profilePicture":
-        if (!value) delete newErrors.profilePicture; // optional
+        if (!value) delete newErrors.profilePicture;
         else delete newErrors.profilePicture;
         break;
 
@@ -194,7 +193,7 @@ const Register = ({ setUser }) => {
     setErrors(updatedErrors);
   };
 
-  // file handling: profilePicture (images) and resume (pdf)
+  // file handling: profilePicture (images as base64) and resume (PDF as File object)
   const handleFileChange = (e, field) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -206,29 +205,39 @@ const Register = ({ setUser }) => {
       return;
     }
 
-    if (field === "resume") {
-      if (file.type !== "application/pdf") {
-        toast.error("Resume must be a PDF");
-        return;
-      }
-    } else if (field === "profilePicture") {
+    if (field === "profilePicture") {
       if (!file.type.startsWith("image/")) {
         toast.error("Profile picture must be an image");
         return;
       }
-    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const updatedForm = { ...formData, [field]: reader.result };
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = () => {
+        const updatedForm = { ...formData, [field]: reader.result };
+        setFormData(updatedForm);
+        const updatedErrors = validateField(field, reader.result, updatedForm);
+        setErrors(updatedErrors);
+      };
+      reader.onerror = () => {
+        toast.error("Error reading image file");
+      };
+      reader.readAsDataURL(file);
+    } 
+    else if (field === "resume") {
+      if (file.type !== "application/pdf") {
+        toast.error("Resume must be a PDF");
+        return;
+      }
+
+      // Keep resume as File object for FormData
+      const updatedForm = { ...formData, [field]: file };
       setFormData(updatedForm);
-      const updatedErrors = validateField(field, reader.result, updatedForm);
+      const updatedErrors = validateField(field, file, updatedForm);
       setErrors(updatedErrors);
-    };
-    reader.onerror = () => {
-      toast.error("Error reading file");
-    };
-    reader.readAsDataURL(file);
+      
+      toast.success("PDF resume selected: " + file.name);
+    }
   };
 
   // full-form validation before submit
@@ -252,7 +261,6 @@ const Register = ({ setUser }) => {
       currentErrors = validateField(f, formData[f], formData);
     });
 
-    // also validate optional URL fields & skills
     currentErrors = validateField("linkedin", formData.linkedin, formData);
     currentErrors = validateField("github", formData.github, formData);
     currentErrors = validateField("skills", formData.skills, formData);
@@ -278,7 +286,7 @@ const Register = ({ setUser }) => {
     }
 
     try {
-      // Prepare payload - remove empty skills, keep base64 files
+      // Prepare payload - remove empty skills
       const filteredSkills = formData.skills.filter((s) => s && s.trim() !== "");
       const payload = {
         ...formData,
@@ -286,14 +294,13 @@ const Register = ({ setUser }) => {
         agreedToTerms: agreed
       };
 
-      // Call your auth service
+      // Call auth service with the payload
       const response = await AuthServices.registerUser(payload);
 
       // handle success
       setServerMessage(response?.data?.message || "Registration successful");
       setRegistrationSuccess(true);
 
-      // optionally set user in app state if backend returned user object/token
       if (response?.data?.user && typeof setUser === "function") {
         setUser(response.data.user);
       }
@@ -306,10 +313,9 @@ const Register = ({ setUser }) => {
         err?.response?.data ||
         err?.message ||
         "Registration failed. Please try again.";
-      // if backend returned field errors object, set them
+      
       if (err?.response?.data && typeof err.response.data === "object") {
         const backendData = err.response.data;
-        // if structure is { fieldName: "error" } or similar
         const fieldErrs = {};
         Object.keys(backendData).forEach((k) => {
           fieldErrs[k] = backendData[k];
@@ -584,7 +590,11 @@ const Register = ({ setUser }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Resume (PDF, Max 5MB) *</label>
               <input type="file" accept="application/pdf" required onChange={(e) => handleFileChange(e, "resume")} className="w-full" />
-              {formData.resume && <p className="text-sm text-green-700 mt-1">Resume file attached ✅</p>}
+              {formData.resume && (
+                <p className="text-sm text-green-700 mt-1">
+                  Resume attached: {formData.resume.name} ✅
+                </p>
+              )}
               {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
             </div>
           </div>

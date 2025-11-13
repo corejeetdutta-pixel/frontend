@@ -34,7 +34,12 @@ const AllJobsTable = () => {
     }
   };
 
-  const handleShare = (jobId) => {
+  const handleShare = (shortId) => {
+    const url = `${window.location.origin}/${shortId}`;
+    navigator.clipboard.writeText(url);
+    alert('📋 Job link copied to clipboard!');
+  };
+  const handleShareByJobId = (jobId) => {
     const url = `${window.location.origin}/jobs/${jobId}`;
     navigator.clipboard.writeText(url);
     alert('📋 Job link copied to clipboard!');
@@ -136,7 +141,16 @@ const AllJobsTable = () => {
                     {new Date(job.lastDate).toLocaleDateString('en-GB')}
                   </td>
                   <td className="px-4 py-2 flex gap-2 flex-wrap">
-                    <button onClick={() => handleShare(job.jobId)} className="text-blue-500 hover:text-blue-700"><Share2 size={18} /></button>
+                    <button onClick={() => {
+                                  if(job.shortId){
+                                  handleShare(job.shortId)
+
+                                }else{
+                                  handleShareByJobId(job.jobId)
+
+                                }
+                                }
+                                } className="text-blue-500 hover:text-blue-700"><Share2 size={18} /></button>
                     <button onClick={() => handleView(job)} className="text-purple-500 hover:text-purple-700"><Eye size={18} /></button>
                   </td>
                 </tr>

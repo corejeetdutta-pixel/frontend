@@ -8,6 +8,7 @@ const JobsByCompany = ({
   jobsByCompany, 
   loading, 
   handleShare, 
+  handleShareByJobId,
   handleView, 
   onJobDelete, 
   isAdmin = false 
@@ -298,7 +299,15 @@ GitHub: ${applicant.github || 'N/A'}
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center space-x-3">
                               <button 
-                                onClick={() => handleShare(job.jobId)}
+                                onClick={() => {
+                                  if(job.shortId){
+                                  handleShare(job.shortId)
+
+                                }else{
+                                  handleShareByJobId(job.jobId)
+
+                                }
+                                }}
                                 className="text-blue-600 hover:text-blue-900 transition-colors"
                                 title="Share job"
                               >

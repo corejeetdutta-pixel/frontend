@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   X, Download, ChevronLeft, ChevronRight, Copy, Eye, XCircle,
-  User as UserIcon
+  User as UserIcon, Mail, Users
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -10,20 +10,16 @@ import ApplicantsViewDetails from './ApplicantsViewDetails';
 const ApplicantModal = ({ 
   isOpen, 
   onClose, 
-  applicants, 
-  currentJobTitle, 
-  currentJobId,
-  loadingApplicants,
-  formatDate,
-  copyApplicantDetails,
-  viewResume,
-  openExternalLink
+  applicants = [], 
+  currentJobTitle = '', 
+  loadingApplicants = false,
+  formatDateTime
 }) => {
   const [applicantFilter, setApplicantFilter] = useState({ 
-    name: '', email: '', mobile: '', status: '' 
+    name: '', email: '', phone: '', status: '' 
   });
   const [currentApplicantPage, setCurrentApplicantPage] = useState(1);
-  const [viewApplicant, setViewApplicant] = useState(null);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
   const applicantsPerPage = 5;
 
   if (!isOpen) return null;
@@ -36,17 +32,17 @@ const ApplicantModal = ({
   };
 
   const clearApplicantFilters = () => {
-    setApplicantFilter({ name: '', email: '', mobile: '', status: '' });
+    setApplicantFilter({ name: '', email: '', phone: '', status: '' });
     setCurrentApplicantPage(1);
   };
 
-  // Add a safeguard to ensure applicants is always an array
-  const filteredApplicants = (Array.isArray(applicants) ? applicants : []).filter(applicant => {
+  // Filter applicants
+  const filteredApplicants = applicants.filter(applicant => {
     return (
-      applicant.name && applicant.name.toLowerCase().includes(applicantFilter.name.toLowerCase()) &&
-      applicant.email && applicant.email.toLowerCase().includes(applicantFilter.email.toLowerCase()) &&
-      applicant.mobile && applicant.mobile.toLowerCase().includes(applicantFilter.mobile.toLowerCase()) &&
-      (applicantFilter.status === '' || applicant.status === applicantFilter.status)
+      (applicant.name || '').toLowerCase().includes(applicantFilter.name.toLowerCase()) &&
+      (applicant.email || '').toLowerCase().includes(applicantFilter.email.toLowerCase()) &&
+      (applicant.phone || applicant.mobile || '').toString().toLowerCase().includes(applicantFilter.phone.toLowerCase()) &&
+      (applicantFilter.status === '' || (applicant.status || 'Applied') === applicantFilter.status)
     );
   });
 
@@ -79,254 +75,273 @@ const ApplicantModal = ({
     
     // Table data
     const tableData = filteredApplicants.map((applicant, idx) => [
-      idx + 1,
-      applicant.name || 'N/A',
-      applicant.email || 'N/A',
-      applicant.mobile || 'N/A',
-      applicant.qualification || 'N/A',
-      applicant.gender || 'N/A',
-      applicant.score || 'N/A',
-      applicant.status || 'Applied'
-    ]);
+        idx + 1,
+        applicant.name || 'N/A',
+        applicant.email || 'N/A',
+        applicant.phone || applicant.mobile || 'N/A',
+        applicant.qualification || applicant.education || 'N/A',
+        applicant.experience || applicant.exp || 'N/A',
+        applicant.appliedAt || applicant.createdAt 
+          ? formatDateTime(applicant.appliedAt || applicant.createdAt) 
+          : 'N/A',
+        applicant.status || 'Applied'
+      ]);
+
 
     // AutoTable
     autoTable(doc, {
       startY: 25,
-      head: [['#', 'Name', 'Email', 'Mobile', 'Qualification', 'Gender', 'Score', 'Status']],
+      head: [['#', 'Name', 'Email', 'Phone', 'Qualification', 'Experience', 'Applied On', 'Status']],
       body: tableData,
       theme: 'grid',
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [79, 70, 229] },
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [34, 197, 94] },
       alternateRowStyles: { fillColor: [243, 244, 246] },
     });
 
     doc.save(`applicants-${currentJobTitle}-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
+  // Copy applicant details
+  const copyApplicantDetails = (applicant) => {
+    const details = `Name: ${applicant.name}\nEmail: ${applicant.email}\nPhone: ${applicant.phone || applicant.mobile || 'N/A'}\nQualification: ${applicant.qualification || 'N/A'}\nExperience: ${applicant.experience || 'N/A'}\nStatus: ${applicant.status || 'Applied'}`;
+    navigator.clipboard.writeText(details);
+    alert('Applicant details copied to clipboard!');
+  };
+
+  const handleViewDetails = (applicant) => {
+    setSelectedApplicant(applicant);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedApplicant(null);
+  };
+
   return (
     <>
-      {/* Applicants Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b">
-              <h3 className="text-2xl font-bold text-indigo-700 flex items-center">
-                <UserIcon className="mr-2" size={24} />
-                Applicants for {currentJobTitle}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-2xl font-semibold text-blue-700">
+                👥 Applicants for {currentJobTitle}
               </h3>
-              <div className="flex gap-3">
-                <button
-                  onClick={exportApplicantsToPDF}
-                  className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  <Download size={18} /> Export PDF
-                </button>
-                <button 
-                  onClick={onClose}
-                  className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
+              <p className="text-gray-600 mt-1">
+                Total {applicants.length} applicant(s) found
+              </p>
             </div>
-            
-            {/* Applicant Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Filter by name"
-                  value={applicantFilter.name}
-                  onChange={handleApplicantFilterChange}
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="text"
-                  name="email"
-                  placeholder="Filter by email"
-                  value={applicantFilter.email}
-                  onChange={handleApplicantFilterChange}
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                <input
-                  type="text"
-                  name="mobile"
-                  placeholder="Filter by mobile"
-                  value={applicantFilter.mobile}
-                  onChange={handleApplicantFilterChange}
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  name="status"
-                  value={applicantFilter.status}
-                  onChange={handleApplicantFilterChange}
-                  className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="Applied">Applied</option>
-                  <option value="Reviewed">Reviewed</option>
-                  <option value="Interviewed">Interviewed</option>
-                  <option value="Selected">Selected</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={clearApplicantFilters}
-                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-1 transition-colors shadow-sm"
-                >
-                  <XCircle size={16} /> Clear Filters
-                </button>
-              </div>
+            <div className="flex gap-3">
+              <button
+                onClick={exportApplicantsToPDF}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition-colors"
+              >
+                <Download size={16} /> Export PDF
+              </button>
+              <button 
+                onClick={onClose}
+                className="text-gray-500 hover:text-red-600 p-2"
+              >
+                <X size={24} />
+              </button>
             </div>
-            
-            <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-              <table className="min-w-full bg-white">
-                <thead className="bg-indigo-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Email</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Mobile</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Applied On</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingApplicants ? (
+          </div>
+
+          {/* Loading State */}
+          {loadingApplicants ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading applicants...</p>
+            </div>
+          ) : applicants.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No applicants found for this job</p>
+            </div>
+          ) : (
+            <>
+              {/* Applicant Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Filter by name"
+                    value={applicantFilter.name}
+                    onChange={handleApplicantFilterChange}
+                    className="w-full border border-gray-300 px-3 py-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="text"
+                    name="email"
+                    placeholder="Filter by email"
+                    value={applicantFilter.email}
+                    onChange={handleApplicantFilterChange}
+                    className="w-full border border-gray-300 px-3 py-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    placeholder="Filter by phone"
+                    value={applicantFilter.phone}
+                    onChange={handleApplicantFilterChange}
+                    className="w-full border border-gray-300 px-3 py-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    name="status"
+                    value={applicantFilter.status}
+                    onChange={handleApplicantFilterChange}
+                    className="w-full border border-gray-300 px-3 py-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={clearApplicantFilters}
+                    className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded text-sm flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <XCircle size={16} /> Clear Filters
+                  </button>
+                </div>
+              </div>
+
+              {/* Applicants Table */}
+              <div className="overflow-x-auto rounded-lg shadow">
+                <table className="min-w-full bg-white">
+                  <thead className="bg-green-600 text-white">
                     <tr>
-                      <td colSpan="6" className="text-center py-8">
-                        <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-                        </div>
-                      </td>
+                      <th className="px-4 py-3 text-left">#</th>
+                      <th className="px-4 py-3 text-left">Name</th>
+                      <th className="px-4 py-3 text-left">Email</th>
+                      <th className="px-4 py-3 text-left hidden md:table-cell">Phone</th>
+                      <th className="px-4 py-3 text-left hidden lg:table-cell">Qualification</th>
+                      <th className="px-4 py-3 text-left hidden lg:table-cell">Experience</th>
+                      <th className="px-4 py-3 text-left">Applied On</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="px-4 py-3 text-left">Actions</th>
                     </tr>
-                  ) : currentApplicants.length > 0 ? (
-                    currentApplicants.map((applicant, index) => (
-                      <tr 
-                        key={index} 
-                        className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-indigo-50 transition-colors`}
-                      >
-                        <td className="px-4 py-3 font-medium">{applicant.name || 'N/A'}</td>
-                        <td className="px-4 py-3 text-indigo-600">{applicant.email || 'N/A'}</td>
-                        <td className="px-4 py-3">{applicant.mobile || 'N/A'}</td>
-                        <td className="px-4 py-3 text-gray-600">{applicant.appliedAt ? formatDate(applicant.appliedAt) : 'N/A'}</td>
+                  </thead>
+                  <tbody>
+                    {currentApplicants.map((applicant, index) => (
+                      <tr key={applicant.applicationId || index} className="border-b hover:bg-gray-50">
+                        <td className="px-4 py-3">{applicantIndexFirst + index + 1}</td>
+                        <td className="px-4 py-3 font-medium">{applicant.name}</td>
                         <td className="px-4 py-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            applicant.status === 'Selected' 
-                              ? 'bg-green-100 text-green-800' 
-                              : applicant.status === 'Rejected' 
-                                ? 'bg-red-100 text-red-800' 
-                                : 'bg-amber-100 text-amber-800'
+                          <div className="flex items-center gap-2">
+                            <Mail size={14} className="text-gray-500" />
+                            {applicant.email}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 hidden md:table-cell">{applicant.phone || applicant.mobile || 'N/A'}</td>
+                        <td className="px-4 py-3 hidden lg:table-cell">{applicant.qualification || 'N/A'}</td>
+                        <td className="px-4 py-3 hidden lg:table-cell">{applicant.experience || 'N/A'}</td>
+                        <td className="px-4 py-3">
+                          {applicant.appliedAt ? formatDateTime(applicant.appliedAt) : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            applicant.status === 'Selected' ? 'bg-green-100 text-green-800' :
+                            applicant.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
                           }`}>
                             {applicant.status || 'Applied'}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => setViewApplicant(applicant)}
-                              className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1 rounded-lg transition-colors"
-                              title="View details"
-                            >
-                              <Eye size={16} /> View
-                            </button>
+                          <div className="flex gap-2">
                             <button
                               onClick={() => copyApplicantDetails(applicant)}
-                              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 bg-gray-100 px-3 py-1 rounded-lg transition-colors"
-                              title="Copy details"
+                              className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
+                              title="Copy applicant details"
                             >
-                              <Copy size={16} /> Copy
+                              <Copy size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleViewDetails(applicant)}
+                              className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
+                              title="View applicant details"
+                            >
+                              <Eye size={16} />
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="6" className="text-center py-6 text-gray-500">
-                        No applicants found matching your criteria
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Applicant Pagination */}
-            {applicantTotalPages > 1 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-                <div className="text-sm text-gray-600">
-                  Showing {applicantIndexFirst + 1} to {Math.min(applicantIndexLast, filteredApplicants.length)} 
-                  {' '}of {filteredApplicants.length} applicants
-                </div>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => paginateApplicants(currentApplicantPage - 1)}
-                    disabled={currentApplicantPage === 1}
-                    className={`px-4 py-2 border rounded-lg flex items-center ${
-                      currentApplicantPage === 1 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-300'
-                    }`}
-                  >
-                    <ChevronLeft size={18} /> Prev
-                  </button>
-                  
-                  <div className="flex">
+              {/* Applicant Pagination */}
+              {applicantTotalPages > 1 && (
+                <div className="flex justify-between items-center mt-6">
+                  <div className="text-sm text-gray-600">
+                    Showing {applicantIndexFirst + 1} to {Math.min(applicantIndexLast, filteredApplicants.length)} of {filteredApplicants.length} applicants
+                  </div>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => paginateApplicants(currentApplicantPage - 1)}
+                      disabled={currentApplicantPage === 1}
+                      className={`px-3 py-1 border rounded flex items-center ${
+                        currentApplicantPage === 1 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-white text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      <ChevronLeft size={16} /> Previous
+                    </button>
+                    
                     {Array.from({ length: applicantTotalPages }, (_, idx) => (
                       <button
                         key={idx + 1}
                         onClick={() => paginateApplicants(idx + 1)}
-                        className={`px-4 py-2 border ${
+                        className={`px-3 py-1 border rounded ${
                           currentApplicantPage === idx + 1 
-                            ? 'bg-indigo-600 text-white border-indigo-700' 
-                            : 'bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-300'
-                        } ${idx === 0 ? 'rounded-l-lg' : ''} ${idx === applicantTotalPages - 1 ? 'rounded-r-lg' : ''}`}
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-white text-blue-600 hover:bg-blue-50'
+                        }`}
                       >
                         {idx + 1}
                       </button>
                     ))}
+                    
+                    <button
+                      onClick={() => paginateApplicants(currentApplicantPage + 1)}
+                      disabled={currentApplicantPage === applicantTotalPages}
+                      className={`px-3 py-1 border rounded flex items-center ${
+                        currentApplicantPage === applicantTotalPages 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-white text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      Next <ChevronRight size={16} />
+                    </button>
                   </div>
-                  
-                  <button
-                    onClick={() => paginateApplicants(currentApplicantPage + 1)}
-                    disabled={currentApplicantPage === applicantTotalPages}
-                    className={`px-4 py-2 border rounded-lg flex items-center ${
-                      currentApplicantPage === applicantTotalPages 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-300'
-                    }`}
-                  >
-                    Next <ChevronRight size={18} />
-                  </button>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Applicant Details Modal */}
-      {viewApplicant && (
+      {selectedApplicant && (
         <ApplicantsViewDetails
-          viewApplicant={viewApplicant}
-          setViewApplicant={setViewApplicant}
-          formatDate={formatDate}
-          copyApplicantDetails={copyApplicantDetails}
-          viewResume={viewResume}
-          openExternalLink={openExternalLink}
+          applicant={selectedApplicant}
+          onClose={handleCloseDetails}
+          formatDateTime={formatDateTime}
         />
       )}
     </>
