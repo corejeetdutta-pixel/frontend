@@ -79,13 +79,13 @@ const MyApplications = ({ user }) => {
           </thead>
           <tbody>
             {appliedJobs.map((job) => (
-              <tr key={job.job.jobId} className="border-t">
-                <td className="py-3 px-4">{job.job.title}</td>
-                <td className="py-3 px-4">{job.job.company}</td>
-                <td className="py-3 px-4">{job.job.location}</td>
+              <tr key={job.jobId} className="border-t">
+                <td className="py-3 px-4">{job.title}</td>
+                <td className="py-3 px-4">{job.company}</td>
+                <td className="py-3 px-4">{job.location}</td>
                 <td className="py-3 px-4">
-                  {job.job.appliedAt
-                    ? new Date(job.job.appliedAt).toLocaleDateString()
+                  {job.appliedAt
+                    ? new Date(job.appliedAt).toLocaleDateString()
                     : "N/A"}
                 </td>
                 <td className="py-3 px-4 text-green-600 font-semibold">Applied</td>
