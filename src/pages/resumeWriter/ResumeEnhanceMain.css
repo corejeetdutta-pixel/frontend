@@ -1,0 +1,227 @@
+.resumeenhance-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding: 4rem 8%;
+    background: linear-gradient(to right, #f8fafc, #f1f5f9);
+    min-height: 100vh;
+}
+
+.resumeenhance-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.resumeenhance-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0160A4;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.resumeenhance-title span {
+    color: #01487c;
+}
+
+.resumeenhance-desc {
+    font-size: 1.05rem;
+    color: #444;
+    margin-bottom: 2rem;
+    max-width: 550px;
+    line-height: 1.6;
+}
+
+.resumeenhance-upload {
+    border: 2px dashed #0160A4;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.resumeenhance-upload:hover {
+    background: #f1f9ff;
+    border-color: #01487c;
+}
+
+.resumeenhance-file-input {
+    display: none;
+}
+
+.resumeenhance-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #333;
+    cursor: pointer;
+}
+
+.resumeenhance-upload-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.resumeenhance-file-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0160A4;
+}
+
+.resumeenhance-btn-primary {
+    margin-top: 1.5rem;
+    background: #0160A4;
+    color: #fff;
+    border: none;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    align-self: flex-start;
+}
+
+.resumeenhance-btn-primary-download {
+    margin-top: 1.5rem;
+    background: #0160A4;
+    color: #fff;
+    border: none;
+    padding: 0.9rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    align-self: flex-start;
+    width: 100%;
+}
+
+.resumeenhance-btn-primary-download:hover {
+    background: #01487c;
+    transform: translateY(-2px);
+}
+
+.resumeenhance-btn-primary:hover {
+    background: #01487c;
+    transform: translateY(-2px);
+}
+
+.resumeenhance-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.resumeenhance-image {
+    width: 100%;
+    max-width: 480px;
+    object-fit: contain;
+}
+
+.resumeenhance-hero-lefttext {
+    text-align: center;
+    padding: 5px;
+    background-color: #036aa12b;
+    border: 1px solid #0160a4;
+    max-width: 200px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.resumeenhance-two-options {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.resumeenhance-option-card {
+  flex: 1;
+  background: #f6faff;
+  border: 1.8px solid #b8d1de;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 40px #0160a412;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 230px;
+}
+
+.resumeenhance-option-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #01487c;
+  margin-bottom: 0.9rem;
+  letter-spacing: 0.01em;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.resumeenhance-job-desc-note {
+  color: #444;
+  font-size: 0.97rem;
+  margin-bottom: 1.05rem;
+  text-align: left;
+}
+
+.resumeenhance-job-desc-cta {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+ 
+@media (max-width: 800px) {
+  .resumeenhance-two-options {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .resumeenhance-option-card {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+
+/* Responsive */
+@media (max-width: 992px) {
+    .resumeenhance-hero {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding: 3rem 5%;
+    }
+
+    .resumeenhance-left {
+        align-items: center;
+    }
+
+    .resumeenhance-title {
+        font-size: 2rem;
+    }
+
+    .resumeenhance-desc {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .resumeenhance-btn-primary {
+        align-self: center;
+    }
+
+    .resumeenhance-image {
+        max-width: 380px;
+    }
+}

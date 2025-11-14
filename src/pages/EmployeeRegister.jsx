@@ -15,8 +15,7 @@ const EmployeeRegister = () => {
     address: "",
     gender: "",
     dateOfBirth: "",
-    aadharNumber: "",
-    panNumber: "",
+    gstNumber: "",
     password: "",
     confirmPassword: "",
     registrationKey: ""
@@ -36,8 +35,7 @@ const EmployeeRegister = () => {
     name: /^[a-zA-Z\s.'-]{2,50}$/,
     email: /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
     mobile: /^[6-9]\d{9}$/,
-    aadhar: /^\d{12}$/,
-    pan: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+    gst: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
     password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
   };
 
@@ -64,16 +62,10 @@ const EmployeeRegister = () => {
         else delete newErrors.mobile;
         break;
 
-      case 'aadharNumber':
-        if (!value.trim()) newErrors.aadharNumber = 'Aadhar is required';
-        else if (!patterns.aadhar.test(value)) newErrors.aadharNumber = 'Aadhar must be 12 digits';
-        else delete newErrors.aadharNumber;
-        break;
-
-      case 'panNumber':
-        if (!value.trim()) newErrors.panNumber = 'PAN is required';
-        else if (!patterns.pan.test(value.toUpperCase())) newErrors.panNumber = 'PAN format invalid';
-        else delete newErrors.panNumber;
+      case 'gstNumber':
+        if (!value.trim()) newErrors.gstNumber = 'GST number is required';
+        else if (!patterns.gst.test(value.toUpperCase())) newErrors.gstNumber = 'Invalid GST number format';
+        else delete newErrors.gstNumber;
         break;
 
       case 'password':
@@ -136,9 +128,8 @@ const EmployeeRegister = () => {
     let processedValue = value;
 
     // auto-format
-    if (name === 'panNumber') processedValue = value.toUpperCase();
+    if (name === 'gstNumber') processedValue = value.toUpperCase();
     if (name === 'email') processedValue = value.toLowerCase();
-    if (name === 'aadharNumber') processedValue = value.replace(/\D/g, '').slice(0, 12);
     if (name === 'mobile') processedValue = value.replace(/\D/g, '').slice(0, 10);
 
     const updatedForm = { ...formData, [name]: processedValue };
@@ -151,7 +142,7 @@ const EmployeeRegister = () => {
   const validateForm = () => {
     const requiredFields = [
       'name', 'email', 'mobile', 'address', 'gender',
-      'dateOfBirth', 'aadharNumber', 'panNumber', 'password',
+      'dateOfBirth', 'gstNumber', 'password',
       'confirmPassword', 'registrationKey'
     ];
 
@@ -414,44 +405,27 @@ const EmployeeRegister = () => {
               )}
             </div>
 
-            {/* Aadhar Number */}
-            <div>
+            {/* GST Number */}
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Aadhar Number *
+                GST Number *
               </label>
               <input
                 type="text"
-                name="aadharNumber"
-                value={formData.aadharNumber}
+                name="gstNumber"
+                value={formData.gstNumber}
                 onChange={handleChange}
                 required
-                placeholder="12-digit Aadhar number"
-                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] ${errors.aadharNumber ? 'border-red-500' : 'border-gray-300'
+                placeholder="e.g., 07AABCU9603R1ZM"
+                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] uppercase ${errors.gstNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
               />
-              {errors.aadharNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.aadharNumber}</p>
+              {errors.gstNumber && (
+                <p className="text-red-500 text-xs mt-1">{errors.gstNumber}</p>
               )}
-            </div>
-
-            {/* PAN Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                PAN Number *
-              </label>
-              <input
-                type="text"
-                name="panNumber"
-                value={formData.panNumber}
-                onChange={handleChange}
-                required
-                placeholder="e.g., ABCDE1234F"
-                className={`w-full px-4 py-3 rounded-xl border outline-none focus:border-[#0260a4] uppercase ${errors.panNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-              />
-              {errors.panNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.panNumber}</p>
-              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Format: 2-digit state code + 10-digit PAN + 3-digit entity code + 1-digit check digit
+              </p>
             </div>
 
             {/* Password */}

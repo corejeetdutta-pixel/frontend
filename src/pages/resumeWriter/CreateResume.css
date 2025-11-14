@@ -1,0 +1,856 @@
+.resume-builder-container {
+  width: 100%;
+  margin: 0 auto;
+  font-family: "Inter", sans-serif;
+  color: #162335;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0160A4;
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.form-section h2 {
+  color: #0160A4;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem 1rem;
+  /* vertical and horizontal gap */
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 80px;
+}
+
+.input-label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  /* spacing between fields */
+  gap: 0.5rem;
+  /* gap between label text and input */
+}
+
+.dynamic-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  /* gap between label text and field */
+  margin-bottom: 1rem;
+  /* space between fields */
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.skill-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.skill-tag span {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.language-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.language-entry input,
+.language-entry select {
+  max-width: 150px;
+  margin-right: 1rem;
+}
+
+.language-add {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.language-add input,
+.language-add select {
+  min-width: 150px;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+}
+
+.add-btn,
+.remove-btn,
+.generate-btn,
+.language-add button {
+  padding: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.add-btn {
+  background: #eef2fa;
+  color: #0160a4;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+  background: #d1e2fb;
+}
+
+.remove-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 8px;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+  margin-top: 0;
+}
+
+.remove-btn:hover {
+  background: #fecaca;
+}
+
+.generate-btn {
+  background: #0160A4;
+  color: #fff;
+  width: 100%;
+  font-size: 1rem;
+  margin-top: 1rem;
+  padding: 0.85rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.generate-btn:hover {
+  background: #01487c;
+}
+
+.generate-btn.outline {
+  background: #fff;
+  border: 2px solid #0160A4;
+  color: #0160A4;
+}
+
+.generate-btn.outline:hover {
+  background: #e6f0fb;
+}
+
+.error-text {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.dynamic-card input,
+.dynamic-card textarea,
+.dynamic-card select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.submit-section {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+}
+
+
+@media (max-width: 600px) {
+  .resume-builder-container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+}
+
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.loading-lottie {
+  width: 150px;
+  height: 150px;
+}
+
+.success-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40px;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.resume-builder-container-div1 {
+  width: 100%;
+  height: 100%;
+}
+
+.resume-builder-container-div3 {
+  width: 100%;
+  max-width: 900px;
+  padding-bottom: 100px;
+}
+
+/* Main layout */
+.creation-fullscreen-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background: #f7fbff;
+  overflow: hidden;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  justify-content: center;
+  align-items: center;
+}
+
+.creation-center-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(24, 64, 164, 0.05);
+  padding: 36px 48px;
+  width: 400px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+/* Title and subtitle */
+.creation-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.creation-subtitle {
+  font-size: 15px;
+  color: #6186a9;
+  margin-bottom: 34px;
+}
+
+/* Steps container */
+.creation-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+/* Individual step */
+.creation-step {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  gap: 16px;
+  padding: 10px 0 10px 2px;
+}
+
+/* Icon container */
+.creation-step-icon {
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Completed check icon */
+.icon-check {
+  font-size: 22px;
+  color: #28a745;
+  /* green */
+}
+
+/* Spinning icon for current step */
+.icon-spinner {
+  font-size: 22px;
+  color: #0160A4;
+  /* blue */
+  animation: spin 1s linear infinite;
+}
+
+/* Dot for pending steps */
+.step-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 50%;
+}
+
+/* Label styles */
+.creation-step-label {
+  color: #374151;
+  font-size: 15px;
+  font-weight: 500;
+  transition: color 0.23s;
+}
+
+/* Style for completed steps */
+.creation-step.complete .creation-step-label {
+  color: #28a745;
+  text-decoration: line-through;
+}
+
+/* Style for current active step */
+.creation-step.current .creation-step-label {
+  color: #0160A4;
+  font-weight: 700;
+}
+
+
+
+
+/* Spin animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 500px) {
+  .creation-center-container {
+    padding: 24px 16px;
+    width: 95vw;
+  }
+
+  .creation-title {
+    font-size: 22px;
+  }
+}
+
+
+.resume-builder-container-div3-text {
+  text-align: start;
+  padding: 5px;
+  background-color: #036aa12b;
+  border: 1px solid #0160a4;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.create-resume-role-container {
+  padding: 24px;
+  position: relative;
+  font-family: "Inter", sans-serif;
+  width: 100%;
+  padding-bottom: 100px;
+}
+
+.create-resume-role-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #0160a4;
+  margin-bottom: 24px;
+}
+
+.create-resume-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.create-resume-role-category {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.create-resume-role-category-title {
+  font-size: 1.2rem;
+  color: #0160a4;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.create-resume-role-subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.create-resume-role-card {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.create-resume-role-card:hover {
+  background: #f0f7fd;
+  border-color: #0160a4;
+}
+
+.create-resume-role-card.active {
+  background: #0160a4;
+  color: white;
+  border-color: #0160a4;
+  box-shadow: 0 3px 6px rgba(1, 96, 164, 0.3);
+}
+
+.create-resume-role-next-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0160a4;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(1, 96, 164, 0.3);
+  transition: all 0.25s ease;
+}
+
+.create-resume-role-next-btn:hover {
+  background: #014d84;
+}
+
+.create-resume-role-next-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.create-resume-role-search-box {
+  margin-bottom: 24px;
+}
+
+.create-resume-role-search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.create-resume-role-search-input:focus {
+  border-color: #0160a4;
+  box-shadow: 0 0 4px rgba(1, 96, 164, 0.2);
+}
+
+.createresumeform {
+  display: flex;
+  width: 100%;
+  background: #f8fafc;
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+}
+
+/* LEFT SIDEBAR */
+.createresumeform-inner1 {
+  width: 320px;
+  background: #0160a4;
+  color: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.createresumeform-inner1-div1 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.createresumeform-inner1-div1-text1 {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.createresumeform-inner1-div1-text2 {
+  font-size: 13px;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.createresumeform-inner1-border {
+  background-color: rgba(255, 255, 255, 0.3);
+  height: 1px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.createresumeform-inner1-div2 {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.createresumeform-inner1-div2-text1 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #0369a1;
+}
+
+.createresumeform-inner1-div2-text2 {
+  font-size: 13px;
+  color: gray;
+}
+
+.createresumeform-inner1-div2-text3 {
+  text-align: end;
+  text-decoration: underline;
+  font-size: 13px;
+  font-weight: bold;
+  color: #0369a1;
+  cursor: pointer;
+}
+
+/* SECTIONS */
+.createresumeform-inner1-div3 {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.createresumeform-section-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.createresumeform-section-item:hover,
+.createresumeform-section-item.active {
+  background-color: #fff;
+  color: #0160a4;
+  font-weight: 600;
+}
+
+/* RIGHT SIDE */
+.createresumeform-inner2 {
+  flex: 1;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.createresumeform-section-fields h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #0160a4;
+}
+
+.createresumeform-fields-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.createresumeform-field label {
+  display: block;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.createresumeform-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.createresumeform-field input:focus {
+  border-color: #0160a4;
+}
+
+.createresumeform-section-fields-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.createresumeform-next-btn {
+  margin-top: 30px;
+  align-self: flex-end;
+  padding: 10px 20px;
+  background-color: #0160a4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.createresumeform-next-btn:hover {
+  background-color: #02528a;
+}
+
+.createresumeform-placeholder {
+  text-align: center;
+  color: gray;
+  margin-top: 100px;
+  font-size: 16px;
+}
+
+.createresumeform-entry {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  /* display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; */
+  width: 100%;
+}
+
+.createresumeform-add-btn {
+  background: #0160a4;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.createresumeform-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.createresumeform-entry-title {
+  font-weight: 600;
+  color: #0369a1;
+  font-size: 14px;
+}
+
+.createresumeform-delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.createresumeform-delete-btn:hover {
+  color: #dc2626;
+}
+
+
+.createresumeform-summary {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+.createresumeform-summary h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #0160a4;
+}
+
+.createresumeform-summary-section {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.createresumeform-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.createresumeform-edit-btn {
+  background: none;
+  border: none;
+  color: #0160a4;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.createresumeform-summary-entry {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.createresumeform-summary-field {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.createresumeform-generate-btn {
+  background: #0160a4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%;
+  transition: background 0.2s ease-in-out;
+}
+
+.createresumeform-generate-btn:hover {
+  background: #014c80;
+}
+
+
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .createresumeform {
+    flex-direction: column;
+  }
+
+  .createresumeform-inner1 {
+    width: 100%;
+    height: auto;
+  }
+
+  .createresumeform-inner2 {
+    padding: 20px;
+  }
+
+  .createresumeform-next-btn {
+    width: 100%;
+  }
+}

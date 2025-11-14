@@ -36,12 +36,12 @@ const JobServices = {
   // ---------------- Applications ----------------
   getAppliedJobsByUser: (userId) => axios.get(`/api/applications/user/${userId}`, { withCredentials: true }),
 
-  // FIXED: Get applicants for job with better error handling
+  // FIXED: Get applicants for job - REMOVE DUPLICATE METHOD
   getApplicantsForJob: (jobId) => {
     console.log('Fetching applicants for job:', jobId);
     return axios.get(`/api/jobs/${jobId}/applicants`, { 
       withCredentials: true,
-      timeout: 10000, // 10 second timeout
+      timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       }
@@ -74,6 +74,14 @@ const JobServices = {
   // ---------------- Status Updates ----------------
   updateApplicationStatus: (applicationId, status) => 
     axios.put(`/api/applications/${applicationId}/status`, { status }, { withCredentials: true }),
+
+  // FIXED: Use getApplicantsForJob instead of creating duplicate method
+  // REMOVE the duplicate getJobApplicants method that uses 'api'
+  // FIXED: Changed 'api' to 'axios' and added withCredentials
+  getJobApplicants: (jobId) => 
+  axios.get(`/api/jobs/${jobId}/applicants`, { 
+    withCredentials: true 
+  })
 };
 
 export default JobServices;

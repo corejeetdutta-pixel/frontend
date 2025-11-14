@@ -33,6 +33,15 @@ import EmpHome from "./pages/EmpHome";
 import Dashboard from "./pages/Dashboard";
 import MyPostedJobs from "./pages/MyPostedJob";
 import AllJobsTable from "./pages/AllJobsTable";
+import HomeScreen from "./pages/resumeWriter/HomeScreen";
+import PaymentSuccess from "./pages/resumeWriter/PaymentSuccess";
+import PaymentCancel from "./pages/resumeWriter/PaymentCancel";
+import MainScreen from "./pages/resumeWriter/MainScreen";
+import CreateResume from "./pages/resumeWriter/CreateResume";
+import DownloadResume from "./pages/resumeWriter/DownloadResume";
+import JobDetailsShortId from "./pages/JobDetailsShortId";
+import ResumeEnhanceMain from "./pages/resumeWriter/ResumeEnhanceMain"
+
 
 // Route guards
 const UserRoute = ({ user, children }) => {
@@ -141,11 +150,11 @@ const App = () => {
       />
 
       {/* Main Routes */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full">
+      <main >
         <Routes>
           {/* Public Pages */}
           <Route path="/" element={<Landing />} />
-          
+          <Route path="/ai-resume" element={<HomeScreen />} />
           {/* ✅ Updated Verification Routes */}
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-employee" element={<VerifyEmployee />} /> {/* ✅ Fixed */}
@@ -154,6 +163,7 @@ const App = () => {
           <Route path="/employee/resend-verification" element={<EmployeeResendVerification />} /> {/* ✅ New */}
           <Route path="/manual-verification" element={<ManualVerification />} />
           <Route path="/jobs/:jobId" element={<JobDetail />} />
+          <Route path="/:shortId" element={<JobDetailsShortId />} />
           <Route path="/payment" element={<PaymentPage />} />
 
           {/* Candidate Auth */}
@@ -263,6 +273,55 @@ const App = () => {
               </UserRoute>
             }
           />
+          <Route
+            path="/payment-success"
+            element={
+              <UserRoute user={user}>
+                <PaymentSuccess/>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/payment-cancel"
+            element={
+              <UserRoute user={user}>
+                <PaymentCancel/>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/resume-dashboard"
+            element={
+              <UserRoute user={user}>
+                <MainScreen/>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/create-resume"
+            element={
+              <UserRoute user={user}>
+                <CreateResume/>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/download-resume"
+            element={
+              <UserRoute user={user}>
+                <DownloadResume/>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/enhance-resume"
+            element={
+              <UserRoute user={user}>
+                <ResumeEnhanceMain/>
+              </UserRoute>
+            }
+          />
+          
 
           {/* Admin Auth */}
           <Route
