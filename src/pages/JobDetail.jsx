@@ -44,7 +44,7 @@ const JobDetail = () => {
     const res = await axios.get(`/api/jobs/view/${jobId}`, config);
     console.log('Job data received:', res.data);
     injectSchema(res.data.schema);
-    setJob(res.data.job);
+    setJob(res.data);
     setError(null);
   } catch (err) {
     console.error('Error fetching job:', err);

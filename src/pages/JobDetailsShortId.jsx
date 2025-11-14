@@ -37,8 +37,8 @@ const JobDetailsShortId = () => {
     
     const res = await axios.get(`/api/jobs/view-shortid/${shortId}`, config);
     console.log('Job data received:', res.data);
-    setJob(res.data);
-    setJobId(res.data.jobId);
+    setJob(res.data.job);
+    setJobId(res.data.job.jobId);
     setError(null);
   } catch (err) {
     console.error('Error fetching job:', err);
